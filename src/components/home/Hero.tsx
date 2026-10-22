@@ -1,20 +1,26 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-ivory">
-      {/* Photography slot: drop the approved image at public/images/hero.jpg */}
-      <div
-        aria-hidden
-        className="absolute inset-0 bg-cover bg-[70%_center] md:bg-center"
-        style={{ backgroundImage: "url(/images/hero.jpg)" }}
-      />
-      <div
-        aria-hidden
-        className="absolute inset-0 bg-gradient-to-r from-ivory via-ivory/70 to-transparent md:via-ivory/30"
-      />
-      <div className="relative mx-auto flex min-h-[560px] max-w-[1280px] flex-col justify-center px-5 py-16 md:min-h-[640px] md:px-8">
+    <section className="relative overflow-hidden bg-ivory md:min-h-[640px]">
+      <div className="relative aspect-[5/4] md:absolute md:inset-y-0 md:right-0 md:aspect-auto md:w-[62%]">
+        <Image
+          src="/images/hero.jpg"
+          alt="Дівчина з теплим шарфом тримає термокухоль"
+          fill
+          priority
+          sizes="(min-width: 768px) 62vw, 100vw"
+          className="object-cover object-[65%_center]"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-t from-ivory via-transparent to-transparent md:bg-gradient-to-r md:from-ivory md:via-ivory/10 md:to-transparent"
+        />
+      </div>
+
+      <div className="relative mx-auto flex max-w-[1280px] flex-col px-5 pb-12 pt-4 md:min-h-[640px] md:justify-center md:px-8 md:py-16">
         <p className="mb-5 text-[11px] font-medium uppercase tracking-[0.3em]">
           Незвичайні речі для твого стилю
         </p>
@@ -38,7 +44,7 @@ export function Hero() {
 
         <p
           aria-label="Більше, ніж просто речі"
-          className="absolute right-5 top-8 hidden -rotate-[12deg] text-right font-script text-[28px] leading-[1.15] text-graphite/80 md:right-12 md:top-14 md:block"
+          className="absolute right-12 top-14 hidden -rotate-[12deg] text-right font-script text-[28px] leading-[1.15] text-graphite/80 md:block"
         >
           Більше,
           <br />
