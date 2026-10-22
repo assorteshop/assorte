@@ -8,4 +8,12 @@ values
     '{#5a2e1f,#171717,#d9c2a7}', true, true, 2),
   ('wooden-puzzle-box', 'Скринька-головоломка', 'Незвичайний подарунок · Натуральне дерево', 1790, 'Хіт подарунків',
     '{#8a5a35,#e6c9a8,#6e5a3a}', true, true, 3)
-on conflict (slug) do nothing;
+on conflict (slug) do update set
+  name = excluded.name,
+  tagline = excluded.tagline,
+  price_uah = excluded.price_uah,
+  badge = excluded.badge,
+  colors = excluded.colors,
+  is_featured = excluded.is_featured,
+  is_published = excluded.is_published,
+  sort_order = excluded.sort_order;
