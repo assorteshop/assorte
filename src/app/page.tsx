@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Footer } from "@/components/home/Footer";
 import { Header } from "@/components/home/Header";
 import { Hero } from "@/components/home/Hero";
@@ -12,7 +13,9 @@ export default function Home() {
       <main>
         <Hero />
         <TrustBar />
-        <PopularProducts />
+        <Suspense fallback={<div className="mx-auto h-[520px] max-w-[1280px]" aria-hidden />}>
+          <PopularProducts />
+        </Suspense>
         <PromoBanners />
       </main>
       <Footer />
