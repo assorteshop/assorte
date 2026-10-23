@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowRight, Search, ShoppingBag } from "lucide-react";
+import { ArrowRight, Search } from "lucide-react";
+import { CartLink } from "@/components/cart/CartLink";
 import { Wordmark } from "./Wordmark";
 
 const nav = [
@@ -25,9 +26,7 @@ export function Header() {
           <Link href="/search" aria-label="Пошук" className="p-1">
             <Search size={20} strokeWidth={1.5} />
           </Link>
-          <Link href="/cart" aria-label="Кошик" className="p-1">
-            <ShoppingBag size={20} strokeWidth={1.5} />
-          </Link>
+          <CartLink />
           <Link
             href="/checkout"
             className="hidden items-center gap-2 rounded-[4px] bg-red px-5 py-2.5 text-[13px] font-medium text-white md:inline-flex"

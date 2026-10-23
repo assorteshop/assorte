@@ -147,6 +147,3 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
   }
   return data;
 }
-
-export const formatUah = (value: number) =>
-  `${new Intl.NumberFormat("uk-UA").format(value).replace(/ /g, " ")} грн`;

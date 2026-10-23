@@ -1,7 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, ShoppingCart } from "lucide-react";
-import { formatUah, type Product } from "@/lib/products";
+import { Heart } from "lucide-react";
+import { AddToCartButton } from "@/components/cart/AddToCartButton";
+import { formatUah } from "@/lib/format";
+import type { Product } from "@/lib/products";
 
 export function ProductCard({ product }: { product: Product }) {
   const href = `/products/${product.slug}`;
@@ -50,13 +52,7 @@ export function ProductCard({ product }: { product: Product }) {
         )}
         <div className="mt-2 flex items-end justify-between">
           <p className="text-[17px] font-medium">{formatUah(product.price_uah)}</p>
-          <Link
-            href={href}
-            aria-label={`Купити: ${product.name}`}
-            className="grid size-11 place-items-center rounded-full bg-red text-white"
-          >
-            <ShoppingCart size={18} strokeWidth={1.75} />
-          </Link>
+          <AddToCartButton product={product} variant="icon" />
         </div>
       </div>
     </article>

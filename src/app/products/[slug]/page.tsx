@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { ProductGallery } from "@/components/catalog/ProductGallery";
 import { SiteShell } from "@/components/SiteShell";
 import { getCategory } from "@/lib/categories";
-import { formatUah, getProductBySlug } from "@/lib/products";
+import { formatUah } from "@/lib/format";
+import { getProductBySlug } from "@/lib/products";
 
 export async function generateMetadata(
   props: PageProps<"/products/[slug]">,
@@ -66,13 +68,7 @@ async function Content(props: PageProps<"/products/[slug]">) {
             <p className="mt-6 max-w-[480px] text-[15px] leading-relaxed">{product.description}</p>
           )}
 
-          <button
-            type="button"
-            disabled
-            className="mt-8 w-full rounded-[4px] bg-red px-7 py-4 text-[15px] font-medium text-white opacity-60 md:w-auto"
-          >
-            Оформлення замовлень — скоро
-          </button>
+          <AddToCartButton product={product} variant="full" />
         </div>
       </div>
     </section>
