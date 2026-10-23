@@ -8,7 +8,7 @@ import type { Product } from "@/lib/products";
 export function ProductCard({ product }: { product: Product }) {
   const href = `/products/${product.slug}`;
   return (
-    <article className="overflow-hidden rounded-[6px] bg-white">
+    <article className="flex h-full flex-col overflow-hidden rounded-[6px] bg-white">
       <div className={`relative aspect-[4/3] ${product.image_url ? "bg-white" : "bg-[#ece8e2]"}`}>
         {product.image_url && (
           <Image
@@ -32,13 +32,13 @@ export function ProductCard({ product }: { product: Product }) {
           <Heart size={20} strokeWidth={1.5} />
         </button>
       </div>
-      <div className="p-4">
-        <h3 className="text-[15px]">
+      <div className="flex flex-1 flex-col p-4">
+        <h3 className="line-clamp-2 text-[15px]">
           <Link href={href} className="hover:text-red">
             {product.name}
           </Link>
         </h3>
-        <p className="mt-1 text-[12px] text-muted">{product.tagline}</p>
+        <p className="mt-1 line-clamp-2 text-[12px] text-muted">{product.tagline}</p>
         {product.colors.length > 0 && (
           <ul className="mt-3 flex gap-2" aria-label="Доступні кольори">
             {product.colors.map((c) => (
@@ -50,7 +50,7 @@ export function ProductCard({ product }: { product: Product }) {
             ))}
           </ul>
         )}
-        <div className="mt-2 flex items-end justify-between">
+        <div className="mt-auto flex items-end justify-between pt-2">
           <p className="text-[17px] font-medium">{formatUah(product.price_uah)}</p>
           <AddToCartButton product={product} variant="icon" />
         </div>
