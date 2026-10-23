@@ -7,6 +7,7 @@ create table if not exists public.products (
   price_uah integer not null check (price_uah >= 0),
   badge text,
   image_url text,
+  images text[] not null default '{}',
   category text check (category in ('sport', 'tech', 'gifts', 'style')),
   description text,
   colors text[] not null default '{}',

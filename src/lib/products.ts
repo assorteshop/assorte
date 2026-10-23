@@ -11,12 +11,13 @@ export type Product = {
   price_uah: number;
   badge: string | null;
   image_url: string | null;
+  images: string[];
   category: CategorySlug | null;
   colors: string[];
 };
 
 const columns =
-  "id, slug, name, tagline, description, price_uah, badge, image_url, category, colors";
+  "id, slug, name, tagline, description, price_uah, badge, image_url, images, category, colors";
 
 // Shown only while Supabase is not configured, so the layout can be reviewed.
 // Names, taglines and prices come from the approved homepage design.
@@ -30,6 +31,7 @@ const designPlaceholders: Product[] = [
     price_uah: 1490,
     badge: "Хіт",
     image_url: null,
+    images: [],
     category: "tech",
     colors: ["#171717", "#e9e1d6", "#5d7260", "#e9a0a0"],
   },
@@ -42,6 +44,7 @@ const designPlaceholders: Product[] = [
     price_uah: 1990,
     badge: "Новинка",
     image_url: null,
+    images: [],
     category: "style",
     colors: ["#5a2e1f", "#171717", "#d9c2a7"],
   },
@@ -54,6 +57,7 @@ const designPlaceholders: Product[] = [
     price_uah: 1790,
     badge: "Хіт подарунків",
     image_url: null,
+    images: [],
     category: "gifts",
     colors: ["#8a5a35", "#e6c9a8", "#6e5a3a"],
   },
