@@ -1,5 +1,7 @@
 "use server";
 
+import { after } from "next/server";
+import { notifyNewOrder } from "@/lib/notify";
 import { supabase } from "@/lib/supabase";
 
 export type OrderState =
@@ -59,5 +61,12 @@ export async function placeOrder(_prev: OrderState, formData: FormData): Promise
     console.error("[assorte] create_order failed:", error?.message);
     return { status: "error", message: "Не вдалося оформити замовлення. Спробуйте пізніше." };
   }
+
+  // Telling the shop owner must never delay or break the customer's order.
+  after(() =>
+    notifyNewOrder({ number: data, name, phone, email, city, address, comment, items }).catch((e) =>
+      console.error("[assorte] notifyNewOrder crashed:", e),
+    ),
+  );
   return { status: "ok", number: data };
 }

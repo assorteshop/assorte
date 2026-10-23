@@ -1,0 +1,138 @@
+import { formatUah } from "./format";
+import { supabase } from "./supabase";
+
+export type NewOrder = {
+  number: number;
+  name: string;
+  phone: string;
+  email: string;
+  city: string;
+  address: string;
+  comment: string;
+  items: { slug: string; qty: number }[];
+};
+
+const escapeHtml = (s: string) =>
+  s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+
+const adminUrl = () =>
+  `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL ?? "assorte.vercel.app"}/admin/orders`;
+
+// Names and prices come from the products table, the same source the order itself uses.
+async function describeItems(items: NewOrder["items"]) {
+  const { data } = supabase
+    ? await supabase
+        .from("products")
+        .select("slug, name, price_uah")
+        .in("slug", items.map((i) => i.slug))
+    : { data: null };
+  const bySlug = new Map((data ?? []).map((p) => [p.slug, p]));
+
+  let total = 0;
+  const lines = items.map((i) => {
+    const qty = Math.min(Math.max(Math.trunc(i.qty) || 1, 1), 20);
+    const p = bySlug.get(i.slug);
+    const sum = (p?.price_uah ?? 0) * qty;
+    total += sum;
+    return { name: p?.name ?? i.slug, qty, sum };
+  });
+  return { lines, total };
+}
+
+async function sendTelegram(text: string) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) return;
+
+  const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: chatId,
+      text,
+      parse_mode: "HTML",
+      disable_web_page_preview: true,
+    }),
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!res.ok) throw new Error(`Telegram ${res.status}: ${await res.text()}`);
+}
+
+async function sendEmail(subject: string, html: string, text: string) {
+  const key = process.env.RESEND_API_KEY;
+  const to = process.env.ORDER_NOTIFY_EMAIL;
+  if (!key || !to) return;
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: process.env.ORDER_EMAIL_FROM ?? "ASSORTE <onboarding@resend.dev>",
+      to: to.split(",").map((s) => s.trim()),
+      subject,
+      html,
+      text,
+    }),
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!res.ok) throw new Error(`Resend ${res.status}: ${await res.text()}`);
+}
+
+export async function notifyNewOrder(order: NewOrder) {
+  const { lines, total } = await describeItems(order.items);
+  const link = adminUrl();
+
+  const itemsText = lines.map((l) => `• ${l.name} × ${l.qty} — ${formatUah(l.sum)}`).join("\n");
+  const plain = [
+    `Нове замовлення №${order.number}`,
+    `${order.name}, ${order.phone}${order.email ? `, ${order.email}` : ""}`,
+    `Нова пошта: ${order.city}, ${order.address}`,
+    "",
+    itemsText,
+    "",
+    `Разом: ${formatUah(total)} (оплата при отриманні)`,
+    order.comment ? `Коментар: ${order.comment}` : "",
+    "",
+    link,
+  ]
+    .filter((l, i, a) => l !== "" || a[i - 1] !== "")
+    .join("\n");
+
+  const telegram = [
+    `🛒 <b>Нове замовлення №${order.number}</b>`,
+    `👤 ${escapeHtml(order.name)}`,
+    `📞 ${escapeHtml(order.phone)}${order.email ? `\n✉️ ${escapeHtml(order.email)}` : ""}`,
+    `📍 Нова пошта: ${escapeHtml(order.city)}, ${escapeHtml(order.address)}`,
+    "",
+    lines.map((l) => `• ${escapeHtml(l.name)} × ${l.qty} — ${formatUah(l.sum)}`).join("\n"),
+    "",
+    `<b>Разом: ${formatUah(total)}</b> (оплата при отриманні)`,
+    order.comment ? `💬 ${escapeHtml(order.comment)}` : "",
+    "",
+    `<a href="${link}">Відкрити в адмінці</a>`,
+  ]
+    .filter((l, i, a) => l !== "" || a[i - 1] !== "")
+    .join("\n");
+
+  const html = `<div style="font-family:Arial,sans-serif;font-size:15px;color:#171717">
+<h2 style="margin:0 0 12px">Нове замовлення №${order.number}</h2>
+<p style="margin:0 0 4px"><b>${escapeHtml(order.name)}</b> · ${escapeHtml(order.phone)}${order.email ? ` · ${escapeHtml(order.email)}` : ""}</p>
+<p style="margin:0 0 16px">Нова пошта: ${escapeHtml(order.city)}, ${escapeHtml(order.address)}</p>
+<table style="border-collapse:collapse;width:100%">${lines
+    .map(
+      (l) =>
+        `<tr><td style="padding:6px 0;border-bottom:1px solid #eee">${escapeHtml(l.name)} × ${l.qty}</td><td style="padding:6px 0;border-bottom:1px solid #eee;text-align:right">${formatUah(l.sum)}</td></tr>`,
+    )
+    .join("")}</table>
+<p style="font-size:17px"><b>Разом: ${formatUah(total)}</b> (оплата при отриманні)</p>
+${order.comment ? `<p>Коментар: ${escapeHtml(order.comment)}</p>` : ""}
+<p><a href="${link}" style="color:#b60016">Відкрити в адмінці</a></p></div>`;
+
+  const results = await Promise.allSettled([
+    sendTelegram(telegram),
+    sendEmail(`Нове замовлення №${order.number} — ASSORTE`, html, plain),
+  ]);
+  results.forEach((r) => {
+    if (r.status === "rejected") console.error("[assorte] order notification failed:", r.reason);
+  });
+}
