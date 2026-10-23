@@ -1,4 +1,4 @@
-import { cacheLife } from "next/cache";
+import { cacheLife, cacheTag } from "next/cache";
 import type { CategorySlug } from "./categories";
 import { supabase } from "./supabase";
 
@@ -64,7 +64,9 @@ const designPlaceholders: Product[] = [
 ];
 
 function lifetime() {
-  // Products edited in Supabase show up on the site within about a minute.
+  // Edits made in the admin refresh the cache at once (tag "products").
+  // Edits made straight in Supabase show up within about a minute.
+  cacheTag("products");
   cacheLife({ stale: 30, revalidate: 60, expire: 3600 });
 }
 
