@@ -41,21 +41,32 @@ async function describeItems(items: NewOrder["items"]) {
 
 async function sendTelegram(text: string) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
-  if (!token || !chatId) return;
+  // One or more chat IDs, separated by commas (each person who should get orders).
+  const chatIds = (process.env.TELEGRAM_CHAT_ID ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (!token || chatIds.length === 0) return;
 
-  const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      chat_id: chatId,
-      text,
-      parse_mode: "HTML",
-      disable_web_page_preview: true,
+  const results = await Promise.allSettled(
+    chatIds.map(async (chatId) => {
+      const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text,
+          parse_mode: "HTML",
+          disable_web_page_preview: true,
+        }),
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!res.ok) throw new Error(`Telegram ${chatId} ${res.status}: ${await res.text()}`);
     }),
-    signal: AbortSignal.timeout(8000),
-  });
-  if (!res.ok) throw new Error(`Telegram ${res.status}: ${await res.text()}`);
+  );
+  const failed = results.filter((r) => r.status === "rejected");
+  if (failed.length === results.length) throw (failed[0] as PromiseRejectedResult).reason;
+  failed.forEach((r) => console.error("[assorte] telegram partial failure:", (r as PromiseRejectedResult).reason));
 }
 
 async function sendEmail(subject: string, html: string, text: string) {
