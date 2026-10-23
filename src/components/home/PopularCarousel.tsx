@@ -1,15 +1,20 @@
 "use client";
 
 import { Children, useCallback, useEffect, useRef, useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 
 export function PopularCarousel({ children }: { children: React.ReactNode }) {
   const track = useRef<HTMLUListElement>(null);
   const [overflows, setOverflows] = useState(false);
+  const [canPrev, setCanPrev] = useState(false);
+  const [canNext, setCanNext] = useState(false);
 
   const measure = useCallback(() => {
     const el = track.current;
-    if (el) setOverflows(el.scrollWidth > el.clientWidth + 4);
+    if (!el) return;
+    setOverflows(el.scrollWidth > el.clientWidth + 4);
+    setCanPrev(el.scrollLeft > 4);
+    setCanNext(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
   }, []);
 
   useEffect(() => {
@@ -21,17 +26,26 @@ export function PopularCarousel({ children }: { children: React.ReactNode }) {
     return () => ro.disconnect();
   }, [measure]);
 
-  // One tap moves the row by one product; at the end it returns to the first.
-  const next = () => {
+  const step = (dir: 1 | -1) => {
     const el = track.current;
     const first = el?.firstElementChild as HTMLElement | null;
     if (!el || !first) return;
-    if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 4) {
+    el.scrollBy({ left: dir * (first.offsetWidth + 20), behavior: "smooth" });
+  };
+
+  // The red header arrow moves one product; at the end it returns to the first.
+  const next = () => {
+    const el = track.current;
+    if (!el) return;
+    if (!canNext) {
       el.scrollTo({ left: 0, behavior: "smooth" });
       return;
     }
-    el.scrollBy({ left: first.offsetWidth + 20, behavior: "smooth" });
+    step(1);
   };
+
+  const edge =
+    "absolute top-[135px] z-10 hidden size-10 -translate-y-1/2 place-items-center rounded-full bg-red text-white shadow-[0_2px_8px_rgba(0,0,0,0.18)] ring-2 ring-white transition-colors hover:bg-[#8f0011] md:grid";
 
   return (
     <section
@@ -55,16 +69,29 @@ export function PopularCarousel({ children }: { children: React.ReactNode }) {
           </button>
         )}
       </div>
-      <ul
-        ref={track}
-        className="-mx-5 mt-6 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-px-5 px-5 pb-2 [scrollbar-width:none] md:mx-0 md:px-0 md:scroll-px-0 [&::-webkit-scrollbar]:hidden"
-      >
-        {Children.map(children, (child) => (
-          <li className="w-[78%] shrink-0 snap-start sm:w-[calc((100%-1.25rem)/2)] lg:w-[calc((100%-2.5rem)/3)]">
-            {child}
-          </li>
-        ))}
-      </ul>
+      <div className="relative">
+        <ul
+          ref={track}
+          onScroll={measure}
+          className="-mx-5 mt-6 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-px-5 px-5 pb-2 [scrollbar-width:none] md:mx-0 md:px-0 md:scroll-px-0 [&::-webkit-scrollbar]:hidden"
+        >
+          {Children.map(children, (child) => (
+            <li className="w-[78%] shrink-0 snap-start sm:w-[calc((100%-1.25rem)/2)] lg:w-[calc((100%-2.5rem)/3)]">
+              {child}
+            </li>
+          ))}
+        </ul>
+        {canPrev && (
+          <button type="button" aria-label="Попередній товар" onClick={() => step(-1)} className={`${edge} -left-5`}>
+            <ChevronLeft size={20} />
+          </button>
+        )}
+        {canNext && (
+          <button type="button" aria-label="Наступний товар" onClick={() => step(1)} className={`${edge} -right-5`}>
+            <ChevronRight size={20} />
+          </button>
+        )}
+      </div>
     </section>
   );
 }
