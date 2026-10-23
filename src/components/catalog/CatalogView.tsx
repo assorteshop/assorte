@@ -1,0 +1,45 @@
+import { Suspense } from "react";
+import { getCategory, type CategorySlug } from "@/lib/categories";
+import { getProducts } from "@/lib/products";
+import { ProductCard } from "@/components/home/ProductCard";
+import { CategoryTabs } from "./CategoryTabs";
+
+async function Grid({ category }: { category?: CategorySlug }) {
+  const products = await getProducts(category);
+  if (products.length === 0) {
+    return <p className="py-16 text-muted">Тут скоро з’являться товари.</p>;
+  }
+  return (
+    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {products.map((p) => (
+        <ProductCard key={p.id} product={p} />
+      ))}
+    </div>
+  );
+}
+
+export function CatalogView({ category }: { category?: CategorySlug }) {
+  const current = category ? getCategory(category) : undefined;
+
+  return (
+    <section className="mx-auto max-w-[1280px] px-5 py-10 md:px-8 md:py-14">
+      <p className="text-[11px] font-medium uppercase tracking-[0.3em] text-red">
+        {current?.eyebrow ?? "Каталог Assorte"}
+      </p>
+      <h1 className="mt-2 text-[32px] md:text-[44px]">{current?.name ?? "Усі товари"}</h1>
+      {current && (
+        <p className="mt-3 max-w-[620px] text-[15px] leading-relaxed text-muted">
+          {current.description}
+        </p>
+      )}
+      <div className="mt-8">
+        <CategoryTabs active={category} />
+      </div>
+      <div className="mt-8">
+        <Suspense fallback={<div className="h-[420px]" aria-hidden />}>
+          <Grid category={category} />
+        </Suspense>
+      </div>
+    </section>
+  );
+}

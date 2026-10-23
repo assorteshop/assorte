@@ -4,7 +4,7 @@ import { Wordmark } from "./Wordmark";
 
 const nav = [
   { href: "/catalog", label: "Каталог" },
-  { href: "/gifts", label: "Подарунки" },
+  { href: "/catalog/gifts", label: "Подарунки" },
   { href: "/new", label: "Новинки" },
   { href: "/about", label: "Про нас" },
 ];
