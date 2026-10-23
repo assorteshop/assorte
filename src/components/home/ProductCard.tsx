@@ -7,14 +7,14 @@ export function ProductCard({ product }: { product: Product }) {
   const href = `/products/${product.slug}`;
   return (
     <article className="overflow-hidden rounded-[6px] bg-white">
-      <div className="relative aspect-[4/3] bg-[#ece8e2]">
+      <div className={`relative aspect-[4/3] ${product.image_url ? "bg-white" : "bg-[#ece8e2]"}`}>
         {product.image_url && (
           <Image
             src={product.image_url}
             alt={product.name}
             fill
             sizes="(min-width: 768px) 33vw, 100vw"
-            className="object-cover"
+            className="object-contain"
           />
         )}
         {product.badge && (
