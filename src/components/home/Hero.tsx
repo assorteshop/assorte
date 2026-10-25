@@ -39,7 +39,7 @@ export function Hero() {
           href="/catalog"
           className="mt-8 inline-flex w-fit items-center gap-3 rounded-[4px] bg-red px-7 py-4 text-[15px] font-medium text-white"
         >
-          Дивитися колекцію <ArrowRight size={16} />
+          Каталог <ArrowRight size={16} />
         </Link>
 
         <p
