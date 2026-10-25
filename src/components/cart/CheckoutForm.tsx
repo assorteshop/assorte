@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { placeOrder, type OrderState } from "@/app/actions/order";
 import { clearCart, useCart } from "@/lib/cart";
 import { formatUah } from "@/lib/format";
@@ -12,13 +12,31 @@ const field =
   "mt-1.5 h-12 w-full rounded-[4px] border border-line bg-white px-4 text-[14px]";
 const label = "block text-[13px]";
 
-export function CheckoutForm() {
+export function CheckoutForm({ onlineEnabled }: { onlineEnabled: boolean }) {
   const { items, total } = useCart();
   const [state, action, pending] = useActionState(placeOrder, initial);
 
+  const payForm = useRef<HTMLFormElement>(null);
+
   useEffect(() => {
-    if (state.status === "ok") clearCart();
+    if (state.status === "ok" || state.status === "pay") clearCart();
+    if (state.status === "pay") payForm.current?.submit();
   }, [state]);
+
+  if (state.status === "pay") {
+    return (
+      <div className="max-w-[560px] py-10">
+        <p className="text-[17px]">Переходимо до оплати…</p>
+        <form ref={payForm} action={state.url} method="POST" className="mt-4">
+          <input type="hidden" name="data" value={state.data} />
+          <input type="hidden" name="signature" value={state.signature} />
+          <noscript>
+            <button type="submit" className="rounded-[4px] bg-red px-7 py-4 text-white">Перейти до оплати</button>
+          </noscript>
+        </form>
+      </div>
+    );
+  }
 
   if (state.status === "ok") {
     return (
@@ -96,7 +114,14 @@ export function CheckoutForm() {
             <input type="radio" name="payment" value="cod" defaultChecked className="accent-[#b60016]" />
             Оплата при отриманні
           </label>
-          <p className="px-1 text-[12px] text-muted">Оплата карткою онлайн буде додана найближчим часом.</p>
+          {onlineEnabled ? (
+            <label className="flex items-center gap-3 rounded-[4px] bg-white px-4 py-3 text-[14px]">
+              <input type="radio" name="payment" value="liqpay" className="accent-[#b60016]" />
+              Оплата карткою онлайн (LiqPay)
+            </label>
+          ) : (
+            <p className="px-1 text-[12px] text-muted">Оплата карткою онлайн буде додана найближчим часом.</p>
+          )}
         </fieldset>
 
         <label className={label}>

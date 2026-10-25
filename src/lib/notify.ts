@@ -10,6 +10,7 @@ export type NewOrder = {
   address: string;
   comment: string;
   items: { slug: string; qty: number }[];
+  payment: "cod" | "liqpay";
 };
 
 const escapeHtml = (s: string) =>
@@ -89,9 +90,24 @@ async function sendEmail(subject: string, html: string, text: string) {
   if (!res.ok) throw new Error(`Resend ${res.status}: ${await res.text()}`);
 }
 
+export async function notifyPayment(number: number, amount: number) {
+  const link = adminUrl();
+  const text = `✅ <b>Замовлення №${number} оплачено онлайн</b>\nСума: ${formatUah(amount)}\n<a href="${link}">Відкрити в адмінці</a>`;
+  const plain = `Замовлення №${number} оплачено онлайн. Сума: ${formatUah(amount)}\n${link}`;
+  const results = await Promise.allSettled([
+    sendTelegram(text),
+    sendEmail(`Оплачено замовлення №${number} — ASSORTE`, `<p>${plain.replace(/\n/g, "<br>")}</p>`, plain),
+  ]);
+  results.forEach((r) => {
+    if (r.status === "rejected") console.error("[assorte] payment notification failed:", r.reason);
+  });
+}
+
 export async function notifyNewOrder(order: NewOrder) {
   const { lines, total } = await describeItems(order.items);
   const link = adminUrl();
+  const paymentLabel =
+    order.payment === "liqpay" ? "онлайн-оплата LiqPay (очікує оплати)" : "оплата при отриманні";
 
   const itemsText = lines.map((l) => `• ${l.name} × ${l.qty} — ${formatUah(l.sum)}`).join("\n");
   const plain = [
@@ -101,7 +117,7 @@ export async function notifyNewOrder(order: NewOrder) {
     "",
     itemsText,
     "",
-    `Разом: ${formatUah(total)} (оплата при отриманні)`,
+    `Разом: ${formatUah(total)} (${paymentLabel})`,
     order.comment ? `Коментар: ${order.comment}` : "",
     "",
     link,
@@ -117,7 +133,7 @@ export async function notifyNewOrder(order: NewOrder) {
     "",
     lines.map((l) => `• ${escapeHtml(l.name)} × ${l.qty} — ${formatUah(l.sum)}`).join("\n"),
     "",
-    `<b>Разом: ${formatUah(total)}</b> (оплата при отриманні)`,
+    `<b>Разом: ${formatUah(total)}</b> (${paymentLabel})`,
     order.comment ? `💬 ${escapeHtml(order.comment)}` : "",
     "",
     `<a href="${link}">Відкрити в адмінці</a>`,
@@ -135,7 +151,7 @@ export async function notifyNewOrder(order: NewOrder) {
         `<tr><td style="padding:6px 0;border-bottom:1px solid #eee">${escapeHtml(l.name)} × ${l.qty}</td><td style="padding:6px 0;border-bottom:1px solid #eee;text-align:right">${formatUah(l.sum)}</td></tr>`,
     )
     .join("")}</table>
-<p style="font-size:17px"><b>Разом: ${formatUah(total)}</b> (оплата при отриманні)</p>
+<p style="font-size:17px"><b>Разом: ${formatUah(total)}</b> (${paymentLabel})</p>
 ${order.comment ? `<p>Коментар: ${escapeHtml(order.comment)}</p>` : ""}
 <p><a href="${link}" style="color:#b60016">Відкрити в адмінці</a></p></div>`;
 

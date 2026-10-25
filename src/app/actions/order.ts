@@ -1,13 +1,15 @@
 "use server";
 
 import { after } from "next/server";
+import { buildCheckout, liqpayConfigured, siteUrl } from "@/lib/liqpay";
 import { notifyNewOrder } from "@/lib/notify";
 import { supabase } from "@/lib/supabase";
 
 export type OrderState =
   | { status: "idle" }
   | { status: "error"; message: string }
-  | { status: "ok"; number: number };
+  | { status: "ok"; number: number }
+  | { status: "pay"; url: string; data: string; signature: string };
 
 export async function placeOrder(_prev: OrderState, formData: FormData): Promise<OrderState> {
   const text = (name: string) => String(formData.get(name) ?? "").trim();
@@ -18,6 +20,7 @@ export async function placeOrder(_prev: OrderState, formData: FormData): Promise
   const city = text("city");
   const address = text("address");
   const comment = text("comment");
+  const payment = text("payment") === "liqpay" ? "liqpay" : "cod";
 
   if (!name || !city || !address) {
     return { status: "error", message: "Заповніть імʼя, місто та відділення." };
@@ -44,6 +47,9 @@ export async function placeOrder(_prev: OrderState, formData: FormData): Promise
   if (!supabase) {
     return { status: "error", message: "Оформлення замовлень тимчасово недоступне." };
   }
+  if (payment === "liqpay" && !liqpayConfigured()) {
+    return { status: "error", message: "Онлайн-оплата поки недоступна. Оберіть оплату при отриманні." };
+  }
 
   const { data, error } = await supabase.rpc("create_order", {
     p_name: name,
@@ -53,20 +59,34 @@ export async function placeOrder(_prev: OrderState, formData: FormData): Promise
     p_delivery: "nova_poshta",
     p_address: address,
     p_comment: comment,
-    p_payment: "cod",
+    p_payment: payment,
     p_items: items,
   });
 
-  if (error || typeof data !== "number") {
+  // The database returns { number, total }; an older function version returned just the number.
+  const created =
+    typeof data === "number"
+      ? { number: data, total: null as number | null }
+      : (data as { number?: number; total?: number } | null);
+
+  if (error || !created || typeof created.number !== "number") {
     console.error("[assorte] create_order failed:", error?.message);
     return { status: "error", message: "Не вдалося оформити замовлення. Спробуйте пізніше." };
   }
+  const number = created.number;
 
   // Telling the shop owner must never delay or break the customer's order.
   after(() =>
-    notifyNewOrder({ number: data, name, phone, email, city, address, comment, items }).catch((e) =>
+    notifyNewOrder({ number, name, phone, email, city, address, comment, items, payment }).catch((e) =>
       console.error("[assorte] notifyNewOrder crashed:", e),
     ),
   );
-  return { status: "ok", number: data };
+
+  if (payment === "liqpay") {
+    if (typeof created.total !== "number") {
+      return { status: "error", message: "Не вдалося підготувати оплату. Оберіть оплату при отриманні." };
+    }
+    return { status: "pay", ...buildCheckout({ orderNumber: number, amount: created.total, siteUrl: siteUrl() }) };
+  }
+  return { status: "ok", number };
 }

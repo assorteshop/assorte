@@ -15,7 +15,7 @@ export default async function AdminOrders() {
   const { data: orders } = await supabase
     .from("orders")
     .select(
-      "id, number, customer_name, phone, email, city, delivery_address, comment, total_uah, status, created_at, order_items(id, name, qty, price_uah, line_total)",
+      "id, number, customer_name, phone, email, city, delivery_address, comment, total_uah, status, payment_method, payment_status, created_at, order_items(id, name, qty, price_uah, line_total)",
     )
     .order("created_at", { ascending: false })
     .limit(200);
@@ -44,7 +44,15 @@ export default async function AdminOrders() {
                 {o.email && <> · {o.email}</>}
               </p>
               <p className="text-[13px] text-muted">
-                Нова пошта: {o.city}, {o.delivery_address} · Оплата при отриманні
+                Нова пошта: {o.city}, {o.delivery_address}
+              </p>
+              <p className="mt-1 text-[13px]">
+                {o.payment_method === "liqpay" ? "Онлайн-оплата (LiqPay): " : "Оплата при отриманні"}
+                {o.payment_method === "liqpay" && (
+                  <span className={o.payment_status === "paid" ? "font-medium text-[#1f6b34]" : "font-medium text-red"}>
+                    {o.payment_status === "paid" ? "оплачено" : o.payment_status === "failed" ? "помилка оплати" : "очікує оплати"}
+                  </span>
+                )}
               </p>
               {o.comment && <p className="mt-1 text-[13px]">Коментар: {o.comment}</p>}
               <ul className="mt-3 space-y-1 border-t border-line pt-3 text-[13px]">
