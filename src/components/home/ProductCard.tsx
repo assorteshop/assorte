@@ -8,7 +8,7 @@ import type { Product } from "@/lib/products";
 export function ProductCard({ product }: { product: Product }) {
   const href = `/products/${product.slug}`;
   return (
-    <article className="flex h-full flex-col overflow-hidden rounded-[6px] bg-white">
+    <article className="relative flex h-full flex-col overflow-hidden rounded-[6px] bg-white">
       <div className={`relative aspect-[4/3] ${product.image_url ? "bg-white" : "bg-[#ece8e2]"}`}>
         {product.image_url && (
           <Image
@@ -27,14 +27,14 @@ export function ProductCard({ product }: { product: Product }) {
         <button
           type="button"
           aria-label="Додати до обраного"
-          className="absolute right-3 top-3 p-1 text-graphite"
+          className="absolute right-3 top-3 z-10 p-1 text-graphite"
         >
           <Heart size={20} strokeWidth={1.5} />
         </button>
       </div>
       <div className="flex flex-1 flex-col p-4">
         <h3 className="line-clamp-2 text-[15px]">
-          <Link href={href} className="hover:text-red">
+          <Link href={href} className="hover:text-red after:absolute after:inset-0 after:content-['']">
             {product.name}
           </Link>
         </h3>
@@ -52,7 +52,9 @@ export function ProductCard({ product }: { product: Product }) {
         )}
         <div className="mt-auto flex items-end justify-between pt-2">
           <p className="text-[17px] font-medium">{formatUah(product.price_uah)}</p>
-          <AddToCartButton product={product} variant="icon" />
+          <div className="relative z-10">
+            <AddToCartButton product={product} variant="icon" />
+          </div>
         </div>
       </div>
     </article>
