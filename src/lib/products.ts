@@ -1,5 +1,5 @@
 import { cacheLife, cacheTag } from "next/cache";
-import type { CategorySlug } from "./categories";
+import { categories, type CategorySlug } from "./categories";
 import { supabase } from "./supabase";
 
 export type Product = {
@@ -210,4 +210,54 @@ export async function getVariants(article: string | null): Promise<VariantOption
     return [];
   }
   return (data ?? []) as VariantOption[];
+}
+
+const cleanTerm = (t: string) => t.replace(/[%_,()*"'\\]/g, " ").trim();
+
+// Case-insensitive search by name, description, article, variant and category name.
+// Every word of the query must match somewhere.
+export async function searchProducts(query: string): Promise<ProductCardData[]> {
+  "use cache";
+  lifetime();
+
+  const words = query
+    .toLowerCase()
+    .split(/\s+/)
+    .map(cleanTerm)
+    .filter(Boolean)
+    .slice(0, 6);
+  if (words.length === 0) return [];
+
+  const categoryHits = (word: string) =>
+    categories.filter((c) => c.name.toLowerCase().includes(word)).map((c) => c.slug);
+
+  if (!supabase) {
+    const hit = (p: Product, w: string) =>
+      [p.name, p.tagline, p.description, p.article, p.variant_label]
+        .filter(Boolean)
+        .some((f) => (f as string).toLowerCase().includes(w)) ||
+      (p.category !== null && categoryHits(w).includes(p.category));
+    return collapseVariants(designPlaceholders.filter((p) => words.every((w) => hit(p, w))));
+  }
+
+  let q = supabase.from("products").select(columns).eq("is_published", true);
+  for (const w of words) {
+    const parts = ["name", "tagline", "description", "article", "variant_label"].map(
+      (f) => `${f}.ilike.%${w}%`,
+    );
+    const cats = categoryHits(w);
+    if (cats.length) parts.push(`category.in.(${cats.join(",")})`);
+    q = q.or(parts.join(","));
+  }
+  const { data, error } = await q.order("sort_order", { ascending: true }).limit(80);
+
+  if (error) {
+    console.error("[assorte] search failed:", error.message);
+    return [];
+  }
+
+  // Name matches first, then everything else in catalogue order.
+  const rows = (data ?? []) as Product[];
+  const score = (p: Product) => (words.every((w) => p.name.toLowerCase().includes(w)) ? 0 : 1);
+  return collapseVariants([...rows].sort((a, b) => score(a) - score(b)));
 }
