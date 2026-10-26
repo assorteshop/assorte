@@ -6,7 +6,13 @@ import { Check, ShoppingCart } from "lucide-react";
 import { addToCart, useCart } from "@/lib/cart";
 
 type Props = {
-  product: { slug: string; name: string; price_uah: number; image_url: string | null };
+  product: {
+    slug: string;
+    name: string;
+    price_uah: number;
+    image_url: string | null;
+    variant_label?: string | null;
+  };
   variant: "icon" | "full";
 };
 
@@ -24,7 +30,7 @@ export function AddToCartButton({ product, variant }: Props) {
   const add = () => {
     addToCart({
       slug: product.slug,
-      name: product.name,
+      name: product.variant_label ? `${product.name} — ${product.variant_label}` : product.name,
       price_uah: product.price_uah,
       image: product.image_url,
     });

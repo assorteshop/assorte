@@ -47,6 +47,8 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
   const tagline = text("tagline");
   const description = text("description");
   const badge = text("badge");
+  const article = text("article").toUpperCase();
+  const variantLabel = text("variant_label");
   const category = text("category");
   const price = Number(text("price_uah"));
   const sortOrder = Number(text("sort_order") || "0");
@@ -60,6 +62,12 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
     return { error: "Ціна має бути цілим числом у гривнях." };
   }
   if (!Number.isInteger(sortOrder)) return { error: "Порядок має бути цілим числом." };
+  if (article.length > 40 || variantLabel.length > 40) {
+    return { error: "Артикул і варіант: до 40 символів." };
+  }
+  if (article && !variantLabel) {
+    return { error: "Вкажіть варіант (наприклад, 10 кг): без нього товар не потрапить у групу." };
+  }
   if (badge.length > 30 || tagline.length > 200 || description.length > 3000) {
     return { error: "Один із текстів задовгий." };
   }
@@ -91,6 +99,8 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
     price_uah: price,
     badge: badge || null,
     category,
+    article: article || null,
+    variant_label: article ? variantLabel : null,
     colors,
     images,
     image_url: images[0] ?? null,
@@ -104,7 +114,13 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
     : await supabase.from("products").insert(row);
 
   if (error) {
-    if (error.code === "23505") return { error: "Товар з такою адресою сторінки вже існує." };
+    if (error.code === "23505") {
+      return {
+        error: error.message.includes("products_article_variant_key")
+          ? "У цього артикулу вже є такий варіант."
+          : "Товар з такою адресою сторінки вже існує.",
+      };
+    }
     console.error("[assorte] saveProduct failed:", error.message);
     return { error: "Не вдалося зберегти. Перевірте поля й спробуйте ще раз." };
   }

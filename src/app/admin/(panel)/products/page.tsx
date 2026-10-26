@@ -7,7 +7,7 @@ export default async function AdminProducts() {
   const { supabase } = await requireAdmin();
   const { data: products } = await supabase
     .from("products")
-    .select("id, name, slug, price_uah, category, is_published, is_featured, image_url")
+    .select("id, name, slug, price_uah, category, is_published, is_featured, image_url, article, variant_label")
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false });
 
@@ -40,9 +40,12 @@ export default async function AdminProducts() {
                   <span className="size-14 rounded-[4px] bg-ivory" />
                 )}
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[15px]">{p.name}</span>
+                  <span className="block truncate text-[15px]">
+                    {p.name}
+                    {p.variant_label && <span className="text-muted"> — {p.variant_label}</span>}
+                  </span>
                   <span className="block text-[12px] text-muted">
-                    {(p.category && getCategory(p.category)?.name) ?? "Без категорії"} · {formatUah(p.price_uah)}
+                    {(p.category && getCategory(p.category)?.name) ?? "Без категорії"} · {formatUah(p.price_uah)}{p.article ? ` · арт. ${p.article}` : ""}
                   </span>
                 </span>
                 {p.is_featured && (

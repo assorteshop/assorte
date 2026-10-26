@@ -24,7 +24,7 @@ async function describeItems(items: NewOrder["items"]) {
   const { data } = supabase
     ? await supabase
         .from("products")
-        .select("slug, name, price_uah")
+        .select("slug, name, price_uah, variant_label")
         .in("slug", items.map((i) => i.slug))
     : { data: null };
   const bySlug = new Map((data ?? []).map((p) => [p.slug, p]));
@@ -35,7 +35,7 @@ async function describeItems(items: NewOrder["items"]) {
     const p = bySlug.get(i.slug);
     const sum = (p?.price_uah ?? 0) * qty;
     total += sum;
-    return { name: p?.name ?? i.slug, qty, sum };
+    return { name: p ? p.name + (p.variant_label ? ` — ${p.variant_label}` : "") : i.slug, qty, sum };
   });
   return { lines, total };
 }

@@ -16,6 +16,8 @@ type Product = {
   badge: string | null;
   category: string | null;
   colors: string[] | null;
+  article: string | null;
+  variant_label: string | null;
   images: string[] | null;
   image_url: string | null;
   is_published: boolean;
@@ -44,9 +46,12 @@ const toSlug = (name: string) =>
     .replace(/^-+|-+$/g, "")
     .slice(0, 80);
 
-export function ProductForm({ product }: { product?: Product }) {
+type Prefill = Partial<Pick<Product, "name" | "tagline" | "description" | "category" | "badge" | "colors" | "article" | "sort_order">>;
+
+export function ProductForm({ product, prefill }: { product?: Product; prefill?: Prefill }) {
+  const base = product ?? prefill;
   const [state, action, pending] = useActionState(saveProduct, initial);
-  const [name, setName] = useState(product?.name ?? "");
+  const [name, setName] = useState(base?.name ?? "");
   const [slug, setSlug] = useState(product?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(Boolean(product));
   const [images, setImages] = useState<string[]>(
@@ -126,7 +131,7 @@ export function ProductForm({ product }: { product?: Product }) {
         </label>
         <label className={label}>
           Категорія
-          <select name="category" required defaultValue={product?.category ?? ""} className={field}>
+          <select name="category" required defaultValue={base?.category ?? ""} className={field}>
             <option value="" disabled>Оберіть…</option>
             {categories.map((c) => (
               <option key={c.slug} value={c.slug}>{c.name}</option>
@@ -139,23 +144,40 @@ export function ProductForm({ product }: { product?: Product }) {
         </label>
         <label className={label}>
           Плашка на фото (необовʼязково)
-          <input name="badge" defaultValue={product?.badge ?? ""} maxLength={30} placeholder="Наприклад: Новинка" className={field} />
+          <input name="badge" defaultValue={base?.badge ?? ""} maxLength={30} placeholder="Наприклад: Новинка" className={field} />
         </label>
+        <div className="rounded-[6px] bg-white p-4 md:col-span-2">
+          <p className="text-[13px]">Групування товарів</p>
+          <p className="mt-1 text-[12px] text-muted">
+            Товари з однаковим артикулом на сайті збираються в одну картку з вибором варіанта
+            (наприклад, гантелі 5 кг, 10 кг, 15 кг). Назва в усіх варіантів однакова, різниться лише варіант.
+          </p>
+          <div className="mt-3 grid gap-4 md:grid-cols-2">
+            <label className={label}>
+              Артикул товару
+              <input name="article" defaultValue={base?.article ?? ""} maxLength={40} placeholder="Наприклад: Г-1" className={field} />
+            </label>
+            <label className={label}>
+              Варіант (обовʼязково, якщо є артикул)
+              <input name="variant_label" defaultValue={product?.variant_label ?? ""} maxLength={40} placeholder="Наприклад: 10 кг" className={field} />
+            </label>
+          </div>
+        </div>
         <label className={`${label} md:col-span-2`}>
           Короткий опис під назвою
-          <input name="tagline" defaultValue={product?.tagline ?? ""} maxLength={200} className={field} />
+          <input name="tagline" defaultValue={base?.tagline ?? ""} maxLength={200} className={field} />
         </label>
         <label className={`${label} md:col-span-2`}>
           Повний опис
-          <textarea name="description" rows={6} defaultValue={product?.description ?? ""} className={`${field} h-auto py-3`} />
+          <textarea name="description" rows={6} defaultValue={base?.description ?? ""} className={`${field} h-auto py-3`} />
         </label>
         <label className={label}>
           Кольори (необовʼязково)
-          <input name="colors" defaultValue={product?.colors?.join(", ") ?? ""} placeholder="#171717, #e9e1d6" className={field} />
+          <input name="colors" defaultValue={base?.colors?.join(", ") ?? ""} placeholder="#171717, #e9e1d6" className={field} />
         </label>
         <label className={label}>
           Порядок (менше — вище)
-          <input name="sort_order" type="number" step={1} defaultValue={product?.sort_order ?? 100} className={field} />
+          <input name="sort_order" type="number" step={1} defaultValue={base?.sort_order ?? 100} className={field} />
         </label>
       </div>
 

@@ -1,4 +1,4 @@
-export type CategorySlug = "sport" | "tech" | "gifts" | "style";
+export type CategorySlug = "sport" | "tech" | "gifts" | "style" | "climate" | "auto";
 
 export type Category = {
   slug: CategorySlug;
@@ -25,7 +25,7 @@ export const categories: Category[] = [
   },
   {
     slug: "gifts",
-    name: "Подарунки та відкриття",
+    name: "Подарунки",
     eyebrow: "Gifts & Discoveries",
     description:
       "Незвичайні подарунки, головоломки, механічні скриньки та оригінальні речі.",
@@ -36,6 +36,19 @@ export const categories: Category[] = [
     eyebrow: "Style & Comfort",
     description:
       "Практичні аксесуари, сумки-муфти, речі для комфорту та сезонні знахідки.",
+  },
+  {
+    slug: "climate",
+    name: "Кліматична техніка",
+    eyebrow: "Climate",
+    description:
+      "Техніка для комфортного клімату вдома й в офісі: обігрів, охолодження та свіже повітря.",
+  },
+  {
+    slug: "auto",
+    name: "Авто і мото",
+    eyebrow: "Auto & Moto",
+    description: "Корисні аксесуари та речі для автомобіля й мотоцикла.",
   },
 ];
 

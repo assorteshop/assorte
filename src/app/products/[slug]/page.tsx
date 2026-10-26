@@ -7,7 +7,7 @@ import { ProductGallery } from "@/components/catalog/ProductGallery";
 import { SiteShell } from "@/components/SiteShell";
 import { getCategory } from "@/lib/categories";
 import { formatUah } from "@/lib/format";
-import { getProductBySlug } from "@/lib/products";
+import { getProductBySlug, getVariants } from "@/lib/products";
 
 export async function generateMetadata(
   props: PageProps<"/products/[slug]">,
@@ -20,6 +20,7 @@ async function Content(props: PageProps<"/products/[slug]">) {
   const product = await getProductBySlug((await props.params).slug);
   if (!product) notFound();
   const category = product.category ? getCategory(product.category) : undefined;
+  const variants = await getVariants(product.article);
 
   return (
     <section className="mx-auto max-w-[1280px] px-5 py-8 md:px-8 md:py-12">
@@ -50,6 +51,29 @@ async function Content(props: PageProps<"/products/[slug]">) {
           )}
           <h1 className="mt-2 text-[32px] leading-tight md:text-[40px]">{product.name}</h1>
           <p className="mt-2 text-[15px] text-muted">{product.tagline}</p>
+          {variants.length > 1 && (
+            <div className="mt-6">
+              <p className="text-[13px] text-muted">Варіант</p>
+              <ul className="mt-2 flex flex-wrap gap-2">
+                {variants.map((v) => (
+                  <li key={v.slug}>
+                    <Link
+                      href={`/products/${v.slug}`}
+                      aria-current={v.slug === product.slug ? "page" : undefined}
+                      className={`inline-block rounded-full border px-4 py-2 text-[14px] ${
+                        v.slug === product.slug
+                          ? "border-graphite bg-graphite text-white"
+                          : "border-line bg-white hover:border-graphite"
+                      }`}
+                    >
+                      {v.variant_label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <p className="mt-6 text-[28px] font-medium">{formatUah(product.price_uah)}</p>
 
           {product.colors.length > 0 && (

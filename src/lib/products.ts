@@ -14,10 +14,15 @@ export type Product = {
   images: string[];
   category: CategorySlug | null;
   colors: string[];
+  article: string | null;
+  variant_label: string | null;
 };
 
+// A catalogue card: all products sharing one article collapse into a single card.
+export type ProductCardData = Product & { variantCount: number; priceFrom: boolean };
+
 const columns =
-  "id, slug, name, tagline, description, price_uah, badge, image_url, images, category, colors";
+  "id, slug, name, tagline, description, price_uah, badge, image_url, images, category, colors, article, variant_label";
 
 // Shown only while Supabase is not configured, so the layout can be reviewed.
 // Names, taglines and prices come from the approved homepage design.
@@ -33,6 +38,8 @@ const designPlaceholders: Product[] = [
     image_url: null,
     images: [],
     category: "tech",
+    article: null,
+    variant_label: null,
     colors: ["#171717", "#e9e1d6", "#5d7260", "#e9a0a0"],
   },
   {
@@ -46,6 +53,8 @@ const designPlaceholders: Product[] = [
     image_url: null,
     images: [],
     category: "style",
+    article: null,
+    variant_label: null,
     colors: ["#5a2e1f", "#171717", "#d9c2a7"],
   },
   {
@@ -59,6 +68,8 @@ const designPlaceholders: Product[] = [
     image_url: null,
     images: [],
     category: "gifts",
+    article: null,
+    variant_label: null,
     colors: ["#8a5a35", "#e6c9a8", "#6e5a3a"],
   },
 ];
@@ -70,10 +81,33 @@ function lifetime() {
   cacheLife({ stale: 30, revalidate: 60, expire: 3600 });
 }
 
-export async function getFeaturedProducts(limit = 6): Promise<Product[]> {
+export function collapseVariants(products: Product[]): ProductCardData[] {
+  const groups = new Map<string, Product[]>();
+  const order: string[] = [];
+  for (const p of products) {
+    const key = p.article ? `a:${p.article.toLowerCase()}` : `s:${p.id}`;
+    if (!groups.has(key)) {
+      groups.set(key, []);
+      order.push(key);
+    }
+    groups.get(key)!.push(p);
+  }
+  return order.map((key) => {
+    const list = groups.get(key)!;
+    // The cheapest variant represents the group on the card.
+    const rep = list.reduce((a, b) => (b.price_uah < a.price_uah ? b : a));
+    return {
+      ...rep,
+      variantCount: list.length,
+      priceFrom: list.some((p) => p.price_uah !== rep.price_uah),
+    };
+  });
+}
+
+export async function getFeaturedProducts(limit = 12): Promise<ProductCardData[]> {
   "use cache";
   lifetime();
-  if (!supabase) return designPlaceholders;
+  if (!supabase) return collapseVariants(designPlaceholders);
 
   const { data, error } = await supabase
     .from("products")
@@ -81,20 +115,20 @@ export async function getFeaturedProducts(limit = 6): Promise<Product[]> {
     .eq("is_published", true)
     .eq("is_featured", true)
     .order("sort_order", { ascending: true })
-    .limit(limit);
+    .limit(60);
 
   if (error) {
     console.error("[assorte] featured products query failed:", error.message);
     return [];
   }
-  return data ?? [];
+  return collapseVariants(data ?? []).slice(0, limit);
 }
 
-export async function getProducts(category?: CategorySlug): Promise<Product[]> {
+export async function getProducts(category?: CategorySlug): Promise<ProductCardData[]> {
   "use cache";
   lifetime();
   if (!supabase) {
-    return designPlaceholders.filter((p) => !category || p.category === category);
+    return collapseVariants(designPlaceholders.filter((p) => !category || p.category === category));
   }
 
   let query = supabase
@@ -109,26 +143,26 @@ export async function getProducts(category?: CategorySlug): Promise<Product[]> {
     console.error("[assorte] products query failed:", error.message);
     return [];
   }
-  return data ?? [];
+  return collapseVariants(data ?? []);
 }
 
-export async function getNewProducts(limit = 12): Promise<Product[]> {
+export async function getNewProducts(limit = 12): Promise<ProductCardData[]> {
   "use cache";
   lifetime();
-  if (!supabase) return designPlaceholders;
+  if (!supabase) return collapseVariants(designPlaceholders);
 
   const { data, error } = await supabase
     .from("products")
     .select(columns)
     .eq("is_published", true)
     .order("created_at", { ascending: false })
-    .limit(limit);
+    .limit(60);
 
   if (error) {
     console.error("[assorte] new products query failed:", error.message);
     return [];
   }
-  return data ?? [];
+  return collapseVariants(data ?? []).slice(0, limit);
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
@@ -148,4 +182,32 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     return null;
   }
   return data;
+}
+
+export type VariantOption = {
+  slug: string;
+  variant_label: string;
+  price_uah: number;
+};
+
+// Other products sharing the same article (for example 5 kg, 10 kg, 15 kg).
+export async function getVariants(article: string | null): Promise<VariantOption[]> {
+  "use cache";
+  lifetime();
+  if (!supabase || !article) return [];
+
+  const { data, error } = await supabase
+    .from("products")
+    .select("slug, variant_label, price_uah")
+    .eq("is_published", true)
+    .eq("article", article)
+    .not("variant_label", "is", null)
+    .order("sort_order", { ascending: true })
+    .order("price_uah", { ascending: true });
+
+  if (error) {
+    console.error("[assorte] variants query failed:", error.message);
+    return [];
+  }
+  return (data ?? []) as VariantOption[];
 }

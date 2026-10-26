@@ -1,11 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Heart } from "lucide-react";
+import { Heart, ShoppingCart } from "lucide-react";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { formatUah } from "@/lib/format";
-import type { Product } from "@/lib/products";
+import type { ProductCardData } from "@/lib/products";
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({ product }: { product: ProductCardData }) {
   const href = `/products/${product.slug}`;
   return (
     <article className="relative flex h-full flex-col overflow-hidden rounded-[6px] bg-white">
@@ -36,9 +36,13 @@ export function ProductCard({ product }: { product: Product }) {
         <h3 className="line-clamp-2 text-[15px]">
           <Link href={href} className="hover:text-red after:absolute after:inset-0 after:content-['']">
             {product.name}
+            {product.variantCount === 1 && product.variant_label ? ` — ${product.variant_label}` : ""}
           </Link>
         </h3>
         <p className="mt-1 line-clamp-2 text-[12px] text-muted">{product.tagline}</p>
+        {product.variantCount > 1 && (
+          <p className="mt-1 text-[12px] text-muted">Варіантів: {product.variantCount}</p>
+        )}
         {product.colors.length > 0 && (
           <ul className="mt-3 flex gap-2" aria-label="Доступні кольори">
             {product.colors.map((c) => (
@@ -51,9 +55,22 @@ export function ProductCard({ product }: { product: Product }) {
           </ul>
         )}
         <div className="mt-auto flex items-end justify-between pt-2">
-          <p className="text-[17px] font-medium">{formatUah(product.price_uah)}</p>
+          <p className="text-[17px] font-medium">
+            {product.priceFrom && <span className="mr-1 text-[13px] font-normal text-muted">від</span>}
+            {formatUah(product.price_uah)}
+          </p>
           <div className="relative z-10">
-            <AddToCartButton product={product} variant="icon" />
+            {product.variantCount > 1 ? (
+              <Link
+                href={href}
+                aria-label={`Обрати варіант: ${product.name}`}
+                className="grid size-11 place-items-center rounded-full bg-red text-white"
+              >
+                <ShoppingCart size={18} strokeWidth={1.75} />
+              </Link>
+            ) : (
+              <AddToCartButton product={product} variant="icon" />
+            )}
           </div>
         </div>
       </div>
