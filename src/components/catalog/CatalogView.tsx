@@ -3,6 +3,7 @@ import { getCategory, type CategorySlug } from "@/lib/categories";
 import { getProducts } from "@/lib/products";
 import { ProductCard } from "@/components/home/ProductCard";
 import { CategoryTabs } from "./CategoryTabs";
+import { SearchBox } from "./SearchBox";
 
 async function Grid({ category }: { category?: CategorySlug }) {
   const products = await getProducts(category);
@@ -32,7 +33,10 @@ export function CatalogView({ category }: { category?: CategorySlug }) {
           {current.description}
         </p>
       )}
-      <div className="mt-8">
+      <div className="mt-6">
+        <SearchBox id="catalog-q" />
+      </div>
+      <div className="mt-5">
         <CategoryTabs active={category} />
       </div>
       <div className="mt-8">

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { Search } from "lucide-react";
 import { CategoryTabs } from "@/components/catalog/CategoryTabs";
+import { SearchBox } from "@/components/catalog/SearchBox";
 import { ProductCard } from "@/components/home/ProductCard";
 import { SiteShell } from "@/components/SiteShell";
 import { searchProducts } from "@/lib/products";
@@ -46,26 +46,7 @@ async function Content(props: PageProps<"/search">) {
 
   return (
     <>
-      <form action="/search" role="search" className="flex max-w-[640px]">
-        <label htmlFor="q" className="sr-only">Пошук товарів</label>
-        <input
-          id="q"
-          name="q"
-          type="search"
-          defaultValue={query}
-          autoFocus={!query}
-          autoComplete="off"
-          placeholder="Що шукаєте?"
-          className="h-12 min-w-0 flex-1 rounded-l-[4px] border border-line bg-white px-4 text-[15px]"
-        />
-        <button
-          type="submit"
-          aria-label="Шукати"
-          className="grid h-12 w-14 place-items-center rounded-r-[4px] bg-red text-white"
-        >
-          <Search size={20} />
-        </button>
-      </form>
+      <SearchBox defaultValue={query} autoFocus={!query} />
       <Results query={query} />
     </>
   );
