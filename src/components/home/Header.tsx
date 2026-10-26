@@ -7,6 +7,7 @@ const nav = [
   { href: "/catalog", label: "Каталог" },
   { href: "/catalog/gifts", label: "Подарунки" },
   { href: "/new", label: "Новинки" },
+  { href: "/articles", label: "Статті" },
   { href: "/about", label: "Про нас" },
 ];
 

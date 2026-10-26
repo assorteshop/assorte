@@ -1,59 +1,33 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { getBanners } from "@/lib/articles";
 
-type Banner = {
-  eyebrow: string;
-  title: string;
-  body?: string;
-  cta: string;
-  href: string;
-  image: string;
-  tone: "light" | "red";
-};
+export async function PromoBanners() {
+  const banners = await getBanners();
 
-const banners: Banner[] = [
-  {
-    eyebrow: "Заряд енергії скрізь, де ти",
-    title: "Надійний павербанк для активного життя",
-    cta: "Дізнатися більше",
-    href: "/catalog/tech",
-    image: "/images/promo-power.jpg",
-    tone: "light",
-  },
-  {
-    eyebrow: "Подарунки з характером",
-    title: "Скриньки, які дивують",
-    body: "Більше, ніж подарунок — це емоція.",
-    cta: "До колекції",
-    href: "/catalog/gifts",
-    image: "/images/promo-gifts.jpg",
-    tone: "red",
-  },
-  {
-    eyebrow: "Теплі аксесуари на кожен день",
-    title: "Стиль, комфорт і турбота",
-    cta: "Переглянути",
-    href: "/catalog/style",
-    image: "/images/promo-style.jpg",
-    tone: "light",
-  },
-];
-
-export function PromoBanners() {
   return (
     <section className="grid md:grid-cols-[1.2fr_1fr_1fr]">
       {banners.map((b) => (
         <div
-          key={b.href}
+          key={b.slot}
           className={`relative min-h-[300px] overflow-hidden p-8 md:min-h-[272px] ${
             b.tone === "red" ? "bg-red text-white" : "bg-[#ebe6e0] text-graphite"
           }`}
         >
-          <div
-            aria-hidden
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${b.image})` }}
-          />
+          {b.image_url && (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={b.image_url} alt="" className="absolute inset-0 size-full object-cover" />
+              <div
+                aria-hidden
+                className={`absolute inset-0 ${
+                  b.tone === "red"
+                    ? "bg-gradient-to-r from-red/85 via-red/50 to-transparent"
+                    : "bg-gradient-to-r from-white/85 via-white/45 to-transparent"
+                }`}
+              />
+            </>
+          )}
           <div className="relative flex h-full max-w-[260px] flex-col items-start">
             <p className="text-[10px] font-medium uppercase tracking-[0.25em]">{b.eyebrow}</p>
             <h2 className="mt-4 text-[26px] leading-[1.15]">{b.title}</h2>
@@ -64,7 +38,7 @@ export function PromoBanners() {
                 b.tone === "red" ? "bg-white text-red" : "bg-red text-white"
               }`}
             >
-              {b.cta} <ArrowRight size={14} />
+              {b.button_label} <ArrowRight size={14} />
             </Link>
           </div>
         </div>

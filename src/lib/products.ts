@@ -261,3 +261,24 @@ export async function searchProducts(query: string): Promise<ProductCardData[]> 
   const score = (p: Product) => (words.every((w) => p.name.toLowerCase().includes(w)) ? 0 : 1);
   return collapseVariants([...rows].sort((a, b) => score(a) - score(b)));
 }
+
+export async function getProductsBySlugs(slugs: string[]): Promise<ProductCardData[]> {
+  "use cache";
+  lifetime();
+  if (!slugs.length) return [];
+  if (!supabase) return collapseVariants(designPlaceholders.filter((p) => slugs.includes(p.slug)));
+
+  const { data, error } = await supabase
+    .from("products")
+    .select(columns)
+    .eq("is_published", true)
+    .in("slug", slugs);
+  if (error) {
+    console.error("[assorte] products by slugs failed:", error.message);
+    return [];
+  }
+  const rows = (data ?? []) as Product[];
+  // Keep the order the editor chose.
+  rows.sort((a, b) => slugs.indexOf(a.slug) - slugs.indexOf(b.slug));
+  return collapseVariants(rows);
+}

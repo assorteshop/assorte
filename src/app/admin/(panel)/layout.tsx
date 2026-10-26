@@ -12,6 +12,8 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
           <span className="text-[12px] uppercase tracking-[0.2em] text-muted">Адмінка</span>
           <nav className="ml-4 flex gap-5 text-[14px]">
             <Link href="/admin/products" className="hover:text-red">Товари</Link>
+            <Link href="/admin/articles" className="hover:text-red">Статті</Link>
+            <Link href="/admin/banners" className="hover:text-red">Блоки на головній</Link>
             <Link href="/admin/orders" className="hover:text-red">Замовлення</Link>
           </nav>
           <form action={logout} className="ml-auto">
