@@ -48,6 +48,18 @@ const toSlug = (name: string) =>
 
 type Prefill = Partial<Pick<Product, "name" | "tagline" | "description" | "category" | "badge" | "colors" | "article" | "sort_order">>;
 
+// Whatever is typed into the address field becomes latin letters, digits and hyphens.
+const normalizeSlug = (v: string) =>
+  v
+    .toLowerCase()
+    .split("")
+    .map((ch) => translit[ch] ?? ch)
+    .join("")
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/-{2,}/g, "-");
+
+const trimSlug = (v: string) => v.replace(/^-+|-+$/g, "");
+
 export function ProductForm({ product, prefill }: { product?: Product; prefill?: Prefill }) {
   const base = product ?? prefill;
   const [state, action, pending] = useActionState(saveProduct, initial);
@@ -123,8 +135,9 @@ export function ProductForm({ product, prefill }: { product?: Product; prefill?:
             value={slug}
             onChange={(e) => {
               setSlugTouched(true);
-              setSlug(e.target.value.toLowerCase());
+              setSlug(normalizeSlug(e.target.value));
             }}
+            onBlur={() => setSlug((v) => trimSlug(v))}
             className={field}
           />
           <span className="mt-1 block text-[12px] text-muted">/products/{slug || "…"}</span>

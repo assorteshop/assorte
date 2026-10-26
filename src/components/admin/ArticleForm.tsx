@@ -33,6 +33,18 @@ const toSlug = (name: string) =>
   name.toLowerCase().split("").map((ch) => translit[ch] ?? ch).join("")
     .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
 
+// Whatever is typed into the address field becomes latin letters, digits and hyphens.
+const normalizeSlug = (v: string) =>
+  v
+    .toLowerCase()
+    .split("")
+    .map((ch) => translit[ch] ?? ch)
+    .join("")
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/-{2,}/g, "-");
+
+const trimSlug = (v: string) => v.replace(/^-+|-+$/g, "");
+
 export function ArticleForm({ article, products }: { article?: Article; products: ProductOption[] }) {
   const [state, action, pending] = useActionState(saveArticle, initial);
   const [title, setTitle] = useState(article?.title ?? "");
@@ -108,8 +120,9 @@ export function ArticleForm({ article, products }: { article?: Article; products
             value={slug}
             onChange={(e) => {
               setSlugTouched(true);
-              setSlug(e.target.value.toLowerCase());
+              setSlug(normalizeSlug(e.target.value));
             }}
+            onBlur={() => setSlug((v) => trimSlug(v))}
             className={field}
           />
           <span className="mt-1 block text-[12px] text-muted">/articles/{slug || "…"}</span>
