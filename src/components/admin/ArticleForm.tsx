@@ -3,6 +3,7 @@
 import { useActionState, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { saveArticle, type FormState } from "@/app/admin/actions";
+import { categories } from "@/lib/categories";
 import { Markdown } from "@/components/Markdown";
 import { uploadImage } from "@/lib/upload";
 
@@ -15,9 +16,30 @@ type Article = {
   cover_url: string | null;
   related_slugs: string[] | null;
   is_published: boolean;
+  seo_title?: string | null;
+  meta_description?: string | null;
+  title_accent?: string | null;
+  eyebrow?: string | null;
+  category_slug?: string | null;
+  cover_alt?: string | null;
+  faq?: { q: string; a: string }[] | null;
+  sources?: { label: string; url: string }[] | null;
+  primary_product_id?: string | null;
+  target_query?: string | null;
 };
 
-export type ProductOption = { slug: string; name: string; variant_label: string | null };
+export type ProductOption = { id: string; slug: string; name: string; variant_label: string | null };
+
+function Counter({ value, max, min }: { value: number; max: number; min?: number }) {
+  const over = value > max;
+  const good = !over && value > 0 && (min === undefined || value >= min);
+  return (
+    <span className={`mt-1 block text-[12px] ${over ? "text-red" : good ? "text-[#1f6b34]" : "text-muted"}`}>
+      {value} / {max}
+      {min !== undefined && value > 0 && value < min ? ` · краще від ${min}` : ""}
+    </span>
+  );
+}
 
 const initial: FormState = { error: null };
 const field = "mt-1.5 w-full rounded-[4px] border border-line bg-white px-4 text-[14px] h-12";
@@ -54,6 +76,11 @@ export function ArticleForm({ article, products }: { article?: Article; products
   const [cover, setCover] = useState(article?.cover_url ?? "");
   const [related, setRelated] = useState<string[]>(article?.related_slugs ?? []);
   const [preview, setPreview] = useState(false);
+  const [seoTitle, setSeoTitle] = useState(article?.seo_title ?? "");
+  const [metaDescription, setMetaDescription] = useState(article?.meta_description ?? "");
+  const [coverAlt, setCoverAlt] = useState(article?.cover_alt ?? "");
+  const [faq, setFaq] = useState<{ q: string; a: string }[]>(article?.faq ?? []);
+  const [sources, setSources] = useState<{ label: string; url: string }[]>(article?.sources ?? []);
   const [busy, setBusy] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const bodyRef = useRef<HTMLTextAreaElement>(null);
@@ -97,6 +124,8 @@ export function ArticleForm({ article, products }: { article?: Article; products
       {article && <input type="hidden" name="id" value={article.id} />}
       <input type="hidden" name="cover_url" value={cover} />
       <input type="hidden" name="related" value={JSON.stringify(related)} />
+      <input type="hidden" name="faq" value={JSON.stringify(faq)} />
+      <input type="hidden" name="sources" value={JSON.stringify(sources)} />
 
       <div className="grid gap-5 md:grid-cols-2">
         <label className={`${label} md:col-span-2`}>
@@ -131,6 +160,46 @@ export function ArticleForm({ article, products }: { article?: Article; products
           Короткий анонс (до 300 символів, показується в списку статей)
           <textarea name="excerpt" rows={3} maxLength={300} defaultValue={article?.excerpt ?? ""} className={`${field} h-auto py-3`} />
         </label>
+        <label className={label}>
+          Надпис над заголовком
+          <input name="eyebrow" defaultValue={article?.eyebrow ?? ""} maxLength={60} placeholder="Гід ASSORTE · Техніка та гаджети" className={field} />
+        </label>
+        <label className={label}>
+          Частина заголовка червоним
+          <input name="title_accent" defaultValue={article?.title_accent ?? ""} maxLength={200} placeholder="Має входити в заголовок дослівно" className={field} />
+        </label>
+        <label className={label}>
+          Категорія статті
+          <select name="category_slug" defaultValue={article?.category_slug ?? ""} className={field}>
+            <option value="">Без категорії</option>
+            {categories.map((c) => (
+              <option key={c.slug} value={c.slug}>{c.name}</option>
+            ))}
+          </select>
+        </label>
+        <label className={label}>
+          Головний товар статті
+          <select name="primary_product_id" defaultValue={article?.primary_product_id ?? ""} className={field}>
+            <option value="">Не вибрано</option>
+            {products.map((p) => (
+              <option key={p.id} value={p.id}>{p.name}{p.variant_label ? ` — ${p.variant_label}` : ""}</option>
+            ))}
+          </select>
+        </label>
+        <label className={`${label} md:col-span-2`}>
+          SEO-заголовок (для Google; якщо порожньо, береться заголовок)
+          <input name="seo_title" value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} className={field} />
+          <Counter value={seoTitle.length} max={60} />
+        </label>
+        <label className={`${label} md:col-span-2`}>
+          Опис для Google (якщо порожньо, береться короткий анонс)
+          <textarea name="meta_description" rows={3} value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} className={`${field} h-auto py-3`} />
+          <Counter value={metaDescription.length} max={160} min={120} />
+        </label>
+        <label className={`${label} md:col-span-2`}>
+          Цільовий запит (нотатка для себе, на сайті не показується)
+          <input name="target_query" defaultValue={article?.target_query ?? ""} maxLength={120} placeholder="як вибрати павербанк" className={field} />
+        </label>
       </div>
 
       <fieldset>
@@ -155,6 +224,10 @@ export function ArticleForm({ article, products }: { article?: Article; products
             <input type="file" accept="image/*" disabled={busy} onChange={(e) => { onCover(e.target.files); e.target.value = ""; }} className="sr-only" />
           </label>
         </div>
+        <label className="mt-3 block max-w-[560px] text-[13px]">
+          Опис обкладинки (alt, обовʼязковий, якщо є фото)
+          <input name="cover_alt" value={coverAlt} onChange={(e) => setCoverAlt(e.target.value)} maxLength={200} className={field} />
+        </label>
       </fieldset>
 
       <div>
@@ -206,6 +279,77 @@ export function ArticleForm({ article, products }: { article?: Article; products
             </li>
           ))}
         </ul>
+      </fieldset>
+
+      <fieldset>
+        <legend className="text-[15px]">Питання й відповіді (FAQ)</legend>
+        <p className="mt-1 text-[12px] text-muted">Показуються в кінці статті та допомагають у Google. До 12 питань.</p>
+        <ul className="mt-3 space-y-3">
+          {faq.map((item, i) => (
+            <li key={i} className="rounded-[4px] border border-line bg-white p-3">
+              <input
+                aria-label={`Питання ${i + 1}`}
+                value={item.q}
+                maxLength={200}
+                placeholder="Питання"
+                onChange={(e) => setFaq((prev) => prev.map((x, j) => (j === i ? { ...x, q: e.target.value } : x)))}
+                className="h-11 w-full rounded-[4px] border border-line px-3 text-[14px]"
+              />
+              <textarea
+                aria-label={`Відповідь ${i + 1}`}
+                value={item.a}
+                rows={3}
+                maxLength={2000}
+                placeholder="Відповідь"
+                onChange={(e) => setFaq((prev) => prev.map((x, j) => (j === i ? { ...x, a: e.target.value } : x)))}
+                className="mt-2 w-full rounded-[4px] border border-line p-3 text-[14px]"
+              />
+              <button type="button" onClick={() => setFaq((prev) => prev.filter((_, j) => j !== i))} className="mt-2 text-[12px] text-red underline underline-offset-4">
+                Видалити питання
+              </button>
+            </li>
+          ))}
+        </ul>
+        {faq.length < 12 && (
+          <button type="button" onClick={() => setFaq((prev) => [...prev, { q: "", a: "" }])} className="mt-3 rounded-[4px] border border-graphite px-4 py-2.5 text-[13px]">
+            + Додати питання
+          </button>
+        )}
+      </fieldset>
+
+      <fieldset>
+        <legend className="text-[15px]">Джерела</legend>
+        <p className="mt-1 text-[12px] text-muted">Посилання на документи й матеріали, на які спирається стаття. До 12.</p>
+        <ul className="mt-3 space-y-3">
+          {sources.map((item, i) => (
+            <li key={i} className="grid gap-2 rounded-[4px] border border-line bg-white p-3 md:grid-cols-[1fr_1.4fr_auto]">
+              <input
+                aria-label={`Назва джерела ${i + 1}`}
+                value={item.label}
+                maxLength={120}
+                placeholder="Назва"
+                onChange={(e) => setSources((prev) => prev.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))}
+                className="h-11 rounded-[4px] border border-line px-3 text-[14px]"
+              />
+              <input
+                aria-label={`Посилання ${i + 1}`}
+                value={item.url}
+                maxLength={500}
+                placeholder="https://…"
+                onChange={(e) => setSources((prev) => prev.map((x, j) => (j === i ? { ...x, url: e.target.value } : x)))}
+                className="h-11 rounded-[4px] border border-line px-3 text-[14px]"
+              />
+              <button type="button" onClick={() => setSources((prev) => prev.filter((_, j) => j !== i))} className="text-[12px] text-red underline underline-offset-4">
+                Видалити
+              </button>
+            </li>
+          ))}
+        </ul>
+        {sources.length < 12 && (
+          <button type="button" onClick={() => setSources((prev) => [...prev, { label: "", url: "" }])} className="mt-3 rounded-[4px] border border-graphite px-4 py-2.5 text-[13px]">
+            + Додати джерело
+          </button>
+        )}
       </fieldset>
 
       <label className="flex items-center gap-3 text-[14px]">

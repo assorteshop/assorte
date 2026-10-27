@@ -5,7 +5,7 @@ export default async function NewArticle() {
   const { supabase } = await requireAdmin();
   const { data: products } = await supabase
     .from("products")
-    .select("slug, name, variant_label")
+    .select("id, slug, name, variant_label")
     .eq("is_published", true)
     .order("name");
   return (
