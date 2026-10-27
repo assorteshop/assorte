@@ -2,6 +2,8 @@ import { Suspense } from "react";
 import { getCategory, type CategorySlug } from "@/lib/categories";
 import { getProducts } from "@/lib/products";
 import { ProductCard } from "@/components/home/ProductCard";
+import { ArticleCardView } from "@/components/blog/ArticleCardView";
+import { getArticlesByCategory } from "@/lib/articles";
 import { CategoryTabs } from "./CategoryTabs";
 import { SearchBox } from "./SearchBox";
 
@@ -16,6 +18,21 @@ async function Grid({ category }: { category?: CategorySlug }) {
         <ProductCard key={p.id} product={p} />
       ))}
     </div>
+  );
+}
+
+async function CategoryArticles({ category }: { category: CategorySlug }) {
+  const articles = await getArticlesByCategory(category);
+  if (articles.length === 0) return null;
+  return (
+    <section className="mt-16 border-t border-line pt-10">
+      <h2 className="text-[26px] md:text-[32px]">Корисні статті</h2>
+      <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {articles.map((a) => (
+          <ArticleCardView key={a.id} article={a} />
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -44,6 +61,11 @@ export function CatalogView({ category }: { category?: CategorySlug }) {
           <Grid category={category} />
         </Suspense>
       </div>
+      {category && (
+        <Suspense fallback={null}>
+          <CategoryArticles category={category} />
+        </Suspense>
+      )}
     </section>
   );
 }

@@ -7,6 +7,13 @@ const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
 
 const nextConfig: NextConfig = {
   // Not the real domain yet: ask every crawler to stay away (also covers files and API routes).
+  // The blog used to live at /articles.
+  async redirects() {
+    return [
+      { source: "/articles", destination: "/blog", statusCode: 301 },
+      { source: "/articles/:slug", destination: "/blog/:slug", statusCode: 301 },
+    ];
+  },
   async headers() {
     return isIndexingEnabled()
       ? []

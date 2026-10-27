@@ -282,3 +282,25 @@ export async function getProductsBySlugs(slugs: string[]): Promise<ProductCardDa
   rows.sort((a, b) => slugs.indexOf(a.slug) - slugs.indexOf(b.slug));
   return collapseVariants(rows);
 }
+
+export async function getProductById(id: string): Promise<ProductCardData | null> {
+  "use cache";
+  lifetime();
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("products")
+    .select(columns)
+    .eq("is_published", true)
+    .eq("id", id)
+    .maybeSingle();
+  if (error || !data) return null;
+  return collapseVariants([data as Product])[0] ?? null;
+}
+
+export async function getAllProductSlugs(): Promise<string[]> {
+  "use cache";
+  lifetime();
+  if (!supabase) return designPlaceholders.map((p) => p.slug);
+  const { data } = await supabase.from("products").select("slug").eq("is_published", true);
+  return (data ?? []).map((p) => p.slug);
+}

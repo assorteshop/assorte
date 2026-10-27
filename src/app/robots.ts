@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { isIndexingEnabled } from "@/lib/site";
+import { getSiteUrl, isIndexingEnabled } from "@/lib/site";
 
 export default function robots(): MetadataRoute.Robots {
   if (!isIndexingEnabled()) {
@@ -11,5 +11,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/admin", "/api/", "/cart", "/checkout", "/search"],
     },
+    sitemap: `${getSiteUrl()}/sitemap.xml`,
   };
 }

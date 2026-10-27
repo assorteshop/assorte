@@ -2,6 +2,7 @@
 
 import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
+import { parseArticleForm } from "@/lib/article-schema";
 import { categories } from "@/lib/categories";
 import { createSupabaseServer, requireAdmin } from "@/lib/supabase-server";
 
@@ -156,65 +157,64 @@ const urlOk = (u: string) => u.startsWith("https://") || u.startsWith("/");
 
 export async function saveArticle(_prev: FormState, formData: FormData): Promise<FormState> {
   const { supabase } = await requireAdmin();
-  const text = (key: string) => String(formData.get(key) ?? "").trim();
+  const id = String(formData.get("id") ?? "").trim();
 
-  const id = text("id");
-  const title = text("title");
-  const slug = text("slug");
-  const excerpt = text("excerpt");
-  const body = String(formData.get("body") ?? "");
-  const cover = text("cover_url");
+  const parsed = parseArticleForm(formData);
+  if (!parsed.ok) return { error: parsed.error };
+  const a = parsed.data;
 
-  if (!title || title.length > 200) return { error: "Вкажіть заголовок (до 200 символів)." };
-  if (!slugPattern.test(slug) || slug.length > 80) {
-    return { error: "Адреса сторінки: лише малі латинські літери, цифри та дефіси." };
-  }
-  if (excerpt.length > 300) return { error: "Короткий анонс: до 300 символів." };
-  if (body.length > 50_000) return { error: "Текст задовгий." };
-  if (cover && (!urlOk(cover) || cover.length > 500)) return { error: "Некоректне посилання на обкладинку." };
-
-  let related: string[] = [];
-  try {
-    const parsed = JSON.parse(text("related") || "[]");
-    if (!Array.isArray(parsed) || parsed.length > 12) throw new Error("bad");
-    related = parsed.map(String);
-    if (related.some((r) => !slugPattern.test(r))) throw new Error("bad");
-  } catch {
-    return { error: "Не вдалося прочитати список товарів." };
-  }
-
-  const publish = formData.get("is_published") === "on";
   let publishedAt: string | null = null;
   if (id) {
     const { data: current } = await supabase.from("articles").select("published_at").eq("id", id).maybeSingle();
     publishedAt = current?.published_at ?? null;
   }
-  if (publish && !publishedAt) publishedAt = new Date().toISOString();
+  if (a.is_published && !publishedAt) publishedAt = new Date().toISOString();
 
   const row = {
-    title,
-    slug,
-    excerpt,
-    body,
-    cover_url: cover || null,
-    related_slugs: related,
-    is_published: publish,
+    title: a.title,
+    slug: a.slug,
+    excerpt: a.excerpt,
+    body: a.body,
+    seo_title: a.seo_title,
+    meta_description: a.meta_description,
+    title_accent: a.title_accent,
+    eyebrow: a.eyebrow,
+    category_slug: a.category_slug,
+    cover_url: a.cover_url,
+    cover_alt: a.cover_alt,
+    faq: a.faq,
+    sources: a.sources,
+    primary_product_id: a.primary_product_id,
+    related_slugs: a.related,
+    is_published: a.is_published,
     published_at: publishedAt,
     updated_at: new Date().toISOString(),
   };
 
-  const { error } = id
-    ? await supabase.from("articles").update(row).eq("id", id)
-    : await supabase.from("articles").insert(row);
-
-  if (error) {
-    if (error.code === "23505") return { error: "Стаття з такою адресою сторінки вже існує." };
-    console.error("[assorte] saveArticle failed:", error.message);
-    return { error: "Не вдалося зберегти. Перевірте поля й спробуйте ще раз." };
+  let articleId = id;
+  if (id) {
+    const { error } = await supabase.from("articles").update(row).eq("id", id);
+    if (error) return saveArticleError(error);
+  } else {
+    const { data, error } = await supabase.from("articles").insert(row).select("id").single();
+    if (error || !data) return saveArticleError(error);
+    articleId = data.id;
   }
+
+  // Founder-only note, kept in a table the public API cannot read.
+  const { error: noteError } = await supabase
+    .from("article_private")
+    .upsert({ article_id: articleId, target_query: a.target_query });
+  if (noteError) console.error("[assorte] article note failed:", noteError.message);
 
   updateTag("articles");
   redirect("/admin/articles");
+}
+
+function saveArticleError(error: { code?: string; message: string } | null): FormState {
+  if (error?.code === "23505") return { error: "Стаття з такою адресою сторінки вже існує." };
+  console.error("[assorte] saveArticle failed:", error?.message);
+  return { error: "Не вдалося зберегти. Перевірте поля й спробуйте ще раз." };
 }
 
 export async function deleteArticle(formData: FormData) {
@@ -239,24 +239,29 @@ export async function saveBanner(_prev: FormState, formData: FormData): Promise<
   const href = text("href");
   const image = text("image_url");
   const tone = text("tone");
+  const articleId = text("article_id");
+  const fromArticle = articleId !== "";
 
   if (![1, 2, 3].includes(slot)) return { error: "Невідомий блок." };
-  if (!title || title.length > 120) return { error: "Заголовок: до 120 символів." };
+  if (fromArticle && !/^[0-9a-f-]{36}$/i.test(articleId)) return { error: "Оберіть статтю зі списку." };
+  if (!fromArticle && (!title || title.length > 120)) return { error: "Заголовок: до 120 символів." };
+  if (title.length > 120) return { error: "Заголовок: до 120 символів." };
   if (eyebrow.length > 80 || body.length > 200 || buttonLabel.length > 30) {
     return { error: "Один із текстів задовгий." };
   }
   if (!buttonLabel) return { error: "Вкажіть текст кнопки." };
-  if (!urlOk(href) || href.length > 300) return { error: "Посилання має починатися з / або https://" };
+  if (!fromArticle && (!urlOk(href) || href.length > 300)) return { error: "Посилання має починатися з / або https://" };
   if (image && (!urlOk(image) || image.length > 500)) return { error: "Некоректне посилання на фото." };
   if (tone !== "light" && tone !== "red") return { error: "Оберіть колір блоку." };
 
   const { error } = await supabase.from("home_banners").upsert({
     slot,
     eyebrow,
-    title,
+    title: title || "Стаття",
     body: body || null,
     button_label: buttonLabel,
-    href,
+    href: fromArticle ? "/blog" : href,
+    article_id: fromArticle ? articleId : null,
     image_url: image || null,
     tone,
     is_active: formData.get("is_active") === "on",
