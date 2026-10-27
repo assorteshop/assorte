@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Search } from "lucide-react";
 import { CartLink } from "@/components/cart/CartLink";
+import { MobileMenu } from "./MobileMenu";
 import { Wordmark } from "./Wordmark";
 
 const nav = [
@@ -24,6 +25,7 @@ export function Header() {
           ))}
         </nav>
         <div className="ml-auto flex items-center gap-4">
+          <MobileMenu items={nav} />
           <Link href="/search" aria-label="Пошук" className="p-1">
             <Search size={20} strokeWidth={1.5} />
           </Link>
