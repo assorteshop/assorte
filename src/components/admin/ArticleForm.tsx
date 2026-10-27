@@ -5,7 +5,7 @@ import { X } from "lucide-react";
 import { saveArticle, type FormState } from "@/app/admin/actions";
 import { categories } from "@/lib/categories";
 import { ArticleBody } from "@/components/blog/ArticleBody";
-import { fillPhotoSlot, isHtmlArticle, listPhotoSlots, readArticle } from "@/lib/article-html";
+import { fillPhotoSlot, isHtmlArticle, listPhotoSlots, looksGarbled, readArticle } from "@/lib/article-html";
 import { uploadImage } from "@/lib/upload";
 
 type Article = {
@@ -332,6 +332,13 @@ export function ArticleForm({ article, products }: { article?: Article; products
               <p className="text-muted">Поки порожньо.</p>
             )}
           </div>
+        )}
+        {looksGarbled(body) && (
+          <p role="alert" className="mt-2 rounded-[4px] bg-[#fdecee] px-3 py-2 text-[13px] text-red">
+            Текст схожий на пошкоджений: замість літер кракозябри (так буває, якщо копіювати зі сторінки браузера з неправильною
+            кодуванням). Очистіть поле й вставте статтю заново з Claude chat (кнопка «Copy») або з файлу через текстовий редактор.
+            Зберегти такий текст не вийде.
+          </p>
         )}
         {filledFromPaste.length > 0 && (
           <p className="mt-2 rounded-[4px] bg-[#e3f1e6] px-3 py-2 text-[13px] text-[#1f6b34]">
