@@ -3,6 +3,7 @@
 import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { parseArticleForm } from "@/lib/article-schema";
+import { parseSettingsForm } from "@/lib/settings-schema";
 import { plainTextOf, sanitizeRichText } from "@/lib/rich-text";
 import { categories } from "@/lib/categories";
 import { createSupabaseServer, requireAdmin } from "@/lib/supabase-server";
@@ -310,4 +311,24 @@ export async function deleteReview(formData: FormData) {
     updateTag("reviews");
   }
   redirect("/admin/reviews");
+}
+
+
+export async function saveSettings(_prev: FormState, formData: FormData): Promise<FormState> {
+  const { supabase } = await requireAdmin();
+  const parsed = parseSettingsForm(formData);
+  if (!parsed.ok) return { error: parsed.error };
+
+  const rows = Object.entries(parsed.data).map(([key, value]) => ({
+    key,
+    value,
+    updated_at: new Date().toISOString(),
+  }));
+  const { error } = await supabase.from("site_settings").upsert(rows);
+  if (error) {
+    console.error("[assorte] saveSettings failed:", error.message);
+    return { error: "Не вдалося зберегти. Перевірте, що виконано SQL для налаштувань." };
+  }
+  updateTag("settings");
+  return { error: null };
 }
