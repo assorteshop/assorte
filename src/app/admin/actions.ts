@@ -287,3 +287,27 @@ export async function saveBanner(_prev: FormState, formData: FormData): Promise<
   updateTag("banners");
   return { error: null };
 }
+
+
+const reviewStatuses = ["pending", "approved", "hidden"];
+
+export async function setReviewStatus(formData: FormData) {
+  const { supabase } = await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const status = String(formData.get("status") ?? "");
+  if (id && reviewStatuses.includes(status)) {
+    await supabase.from("product_reviews").update({ status }).eq("id", id);
+    updateTag("reviews");
+  }
+  redirect("/admin/reviews");
+}
+
+export async function deleteReview(formData: FormData) {
+  const { supabase } = await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  if (id) {
+    await supabase.from("product_reviews").delete().eq("id", id);
+    updateTag("reviews");
+  }
+  redirect("/admin/reviews");
+}

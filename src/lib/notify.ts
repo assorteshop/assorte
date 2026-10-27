@@ -171,3 +171,18 @@ ${order.comment ? `<p>Коментар: ${escapeHtml(order.comment)}</p>` : ""}
     if (r.status === "rejected") console.error("[assorte] order notification failed:", r.reason);
   });
 }
+
+export async function notifyNewReview(r: { slug: string; name: string; rating: number; body: string }) {
+  const link = `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL ?? "assorte.vercel.app"}/admin/reviews`;
+  const snippet = r.body.length > 300 ? `${r.body.slice(0, 300)}…` : r.body;
+  const stars = "★".repeat(r.rating) + "☆".repeat(5 - r.rating);
+  const text = `⭐ <b>Новий відгук на модерації</b>\nТовар: ${escapeHtml(r.slug)}\n${stars} · ${escapeHtml(r.name)}\n${escapeHtml(snippet)}\n\n<a href="${link}">Переглянути й опублікувати</a>`;
+  const plain = `Новий відгук на модерації\nТовар: ${r.slug}\n${stars} ${r.name}\n${snippet}\n${link}`;
+  const results = await Promise.allSettled([
+    sendTelegram(text),
+    sendEmail("Новий відгук на модерації — ASSORTE", `<p>${escapeHtml(plain).replace(/\n/g, "<br>")}</p>`, plain),
+  ]);
+  results.forEach((x) => {
+    if (x.status === "rejected") console.error("[assorte] review notification failed:", x.reason);
+  });
+}
