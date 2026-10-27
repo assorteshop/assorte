@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Manrope, Marck_Script } from "next/font/google";
+import { getSiteUrl, isIndexingEnabled } from "@/lib/site";
 import "./globals.css";
 
 const inter = Inter({
@@ -21,6 +22,8 @@ const script = Marck_Script({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(getSiteUrl()),
+  robots: isIndexingEnabled() ? undefined : { index: false, follow: false },
   title: "ASSORTE — продумані деталі для кращих моментів",
   description:
     "Аксесуари, гаджети та стильні знахідки, які поєднують користь, естетику і турботу про щоденний комфорт.",
