@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Gem, Gift, Leaf, Star } from "lucide-react";
 import { Wordmark } from "./Wordmark";
 import { NewsletterForm } from "./NewsletterForm";
+import { getSettings } from "@/lib/settings";
 
 const points = [
   { icon: Gem, text: "Ретельний відбір товарів" },
@@ -10,9 +11,23 @@ const points = [
   { icon: Star, text: "Чесні описи та реальні фото" },
 ];
 
-const socials = ["Instagram", "Facebook", "YouTube", "TikTok"];
+const info = [
+  { href: "/delivery-and-payment", label: "Доставка і оплата" },
+  { href: "/returns", label: "Повернення" },
+  { href: "/terms", label: "Публічна оферта" },
+  { href: "/contacts", label: "Контакти" },
+];
 
-export function Footer() {
+export async function Footer() {
+  const settings = await getSettings();
+  // Only the social networks typed into the admin are shown, no dead links.
+  const socials = [
+    { name: "Instagram", href: settings.social_instagram },
+    { name: "Telegram", href: settings.social_telegram },
+    { name: "Facebook", href: settings.social_facebook },
+    { name: "TikTok", href: settings.social_tiktok },
+  ].filter((x): x is { name: string; href: string } => Boolean(x.href));
+
   return (
     <footer className="bg-ivory">
       <div className="mx-auto grid max-w-[1280px] gap-10 px-5 py-10 md:grid-cols-3 md:px-8">
@@ -42,17 +57,30 @@ export function Footer() {
           <NewsletterForm />
         </div>
       </div>
-      <div className="mx-auto flex max-w-[1280px] flex-col gap-4 px-5 pb-8 text-[11px] text-muted md:flex-row md:items-center md:justify-between md:px-8">
-        <p>© 2026 ASSORTE. Всі права захищені.</p>
-        <ul className="flex gap-4 text-graphite">
-          {socials.map((s) => (
-            <li key={s}>
-              <a href="#" aria-label={s} className="text-[12px] hover:text-red">
-                {s}
-              </a>
+      <div className="mx-auto max-w-[1280px] border-t border-line px-5 py-6 md:px-8">
+        <ul className="flex flex-wrap gap-x-6 gap-y-2 text-[13px]">
+          {info.map((l) => (
+            <li key={l.href}>
+              <Link href={l.href} className="hover:text-red">
+                {l.label}
+              </Link>
             </li>
           ))}
         </ul>
+        <div className="mt-4 flex flex-col gap-3 text-[11px] text-muted md:flex-row md:items-center md:justify-between">
+          <p>© 2026 ASSORTE. Всі права захищені.</p>
+          {socials.length > 0 && (
+            <ul className="flex gap-4 text-graphite">
+              {socials.map((s) => (
+                <li key={s.name}>
+                  <a href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.name} className="text-[12px] hover:text-red">
+                    {s.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     </footer>
   );
