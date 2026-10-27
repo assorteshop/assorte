@@ -21,9 +21,10 @@ export async function placeOrder(_prev: OrderState, formData: FormData): Promise
   const address = text("address");
   const comment = text("comment");
   const payment = text("payment") === "liqpay" ? "liqpay" : "cod";
+  const delivery = text("delivery") === "ukrposhta" ? "ukrposhta" : "nova_poshta";
 
   if (!name || !city || !address) {
-    return { status: "error", message: "Заповніть імʼя, місто та відділення." };
+    return { status: "error", message: "Заповніть імʼя, місто та відділення (адресу доставки)." };
   }
   if (phone.replace(/\D/g, "").length < 10) {
     return { status: "error", message: "Перевірте номер телефону." };
@@ -56,7 +57,7 @@ export async function placeOrder(_prev: OrderState, formData: FormData): Promise
     p_phone: phone,
     p_email: email,
     p_city: city,
-    p_delivery: "nova_poshta",
+    p_delivery: delivery,
     p_address: address,
     p_comment: comment,
     p_payment: payment,
@@ -77,7 +78,7 @@ export async function placeOrder(_prev: OrderState, formData: FormData): Promise
 
   // Telling the shop owner must never delay or break the customer's order.
   after(() =>
-    notifyNewOrder({ number, name, phone, email, city, address, comment, items, payment }).catch((e) =>
+    notifyNewOrder({ number, name, phone, email, city, address, comment, items, payment, delivery }).catch((e) =>
       console.error("[assorte] notifyNewOrder crashed:", e),
     ),
   );

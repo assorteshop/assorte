@@ -3,6 +3,7 @@
 import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { parseArticleForm } from "@/lib/article-schema";
+import { plainTextOf, sanitizeRichText } from "@/lib/rich-text";
 import { categories } from "@/lib/categories";
 import { createSupabaseServer, requireAdmin } from "@/lib/supabase-server";
 
@@ -46,7 +47,8 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
   const name = text("name");
   const slug = text("slug");
   const tagline = text("tagline");
-  const description = text("description");
+  const descriptionHtml = sanitizeRichText(String(formData.get("description") ?? ""));
+  const description = plainTextOf(descriptionHtml) ? descriptionHtml : "";
   const badge = text("badge");
   const article = text("article").toUpperCase();
   const variantLabel = text("variant_label");
@@ -66,10 +68,7 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
   if (article.length > 40 || variantLabel.length > 40) {
     return { error: "Артикул і варіант: до 40 символів." };
   }
-  if (article && !variantLabel) {
-    return { error: "Вкажіть варіант (наприклад, 10 кг): без нього товар не потрапить у групу." };
-  }
-  if (badge.length > 30 || tagline.length > 200 || description.length > 3000) {
+  if (badge.length > 30 || tagline.length > 200 || plainTextOf(description).length > 5000 || description.length > 12000) {
     return { error: "Один із текстів задовгий." };
   }
 
@@ -92,16 +91,31 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
     return { error: "Не вдалося прочитати список фото." };
   }
 
+  let specs: { name: string; value: string }[];
+  try {
+    const parsed = JSON.parse(text("specs") || "[]");
+    if (!Array.isArray(parsed) || parsed.length > 30) throw new Error("bad");
+    specs = parsed
+      .map((r: { name?: unknown; value?: unknown }) => ({ name: String(r.name ?? "").trim(), value: String(r.value ?? "").trim() }))
+      .filter((r) => r.name || r.value);
+    if (specs.some((r) => !r.name || !r.value || r.name.length > 80 || r.value.length > 300)) {
+      return { error: "Характеристики: у кожному рядку потрібні і назва, і значення (до 80 і 300 символів)." };
+    }
+  } catch {
+    return { error: "Не вдалося прочитати характеристики." };
+  }
+
   const row = {
     name,
     slug,
+    specs,
     tagline,
     description: description || null,
     price_uah: price,
     badge: badge || null,
     category,
     article: article || null,
-    variant_label: article ? variantLabel : null,
+    variant_label: article ? variantLabel || null : null,
     colors,
     images,
     image_url: images[0] ?? null,
