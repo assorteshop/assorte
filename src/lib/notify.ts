@@ -1,5 +1,6 @@
 import { formatUah } from "./format";
 import { onlineDiscount } from "./pricing";
+import { getSiteUrl } from "./site";
 import { supabase } from "./supabase";
 
 export type NewOrder = {
@@ -19,7 +20,7 @@ const escapeHtml = (s: string) =>
   s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
 const adminUrl = () =>
-  `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL ?? "assorte.vercel.app"}/admin/orders`;
+  `${getSiteUrl()}/admin/orders`;
 
 // Names and prices come from the products table, the same source the order itself uses.
 async function describeItems(items: NewOrder["items"]) {
@@ -173,7 +174,7 @@ ${order.comment ? `<p>Коментар: ${escapeHtml(order.comment)}</p>` : ""}
 }
 
 export async function notifyNewReview(r: { slug: string; name: string; rating: number; body: string }) {
-  const link = `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL ?? "assorte.vercel.app"}/admin/reviews`;
+  const link = `${getSiteUrl()}/admin/reviews`;
   const snippet = r.body.length > 300 ? `${r.body.slice(0, 300)}…` : r.body;
   const stars = "★".repeat(r.rating) + "☆".repeat(5 - r.rating);
   const text = `⭐ <b>Новий відгук на модерації</b>\nТовар: ${escapeHtml(r.slug)}\n${stars} · ${escapeHtml(r.name)}\n${escapeHtml(snippet)}\n\n<a href="${link}">Переглянути й опублікувати</a>`;
