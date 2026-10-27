@@ -14,6 +14,12 @@ alter table public.articles
   add column if not exists sources jsonb not null default '[]'::jsonb,
   add column if not exists primary_product_id uuid references public.products (id) on delete set null;
 
+-- Categories live in code (src/lib/categories.ts), there is no categories table, so this stays a CHECK.
+-- When a new category is added, update ALL THREE places:
+--   1) src/lib/categories.ts
+--   2) this constraint: articles_category_slug_check
+--   3) products_category_check on public.products
+-- (drop the constraint and add it again with the longer list, in a new migration).
 do $$
 begin
   if not exists (select 1 from pg_constraint where conname = 'articles_category_slug_check') then
@@ -68,6 +74,7 @@ end $$;
 create or replace function public.articles_touch()
 returns trigger
 language plpgsql
+set search_path = ''
 as $$
 begin
   new.updated_at := now();
@@ -91,7 +98,7 @@ create or replace function public.articles_remember_slug()
 returns trigger
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $$
 begin
   if old.slug is distinct from new.slug and old.is_published then
@@ -113,7 +120,7 @@ returns text
 language sql
 stable
 security definer
-set search_path = public
+set search_path = ''
 as $$
   select a.slug
   from public.article_slug_history h
