@@ -32,3 +32,10 @@ describe("getSiteUrl", () => {
     expect(getSiteUrl("oops")).toBe("https://assorte.vercel.app");
   });
 });
+
+describe("one address for links in messages and for LiqPay", () => {
+  it("is the real domain once NEXT_PUBLIC_SITE_URL is set", () => {
+    expect(getSiteUrl("https://assorte.com.ua")).toBe("https://assorte.com.ua");
+    expect(isIndexingEnabled("https://assorte.com.ua", "production")).toBe(true);
+  });
+});

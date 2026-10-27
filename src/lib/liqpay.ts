@@ -1,4 +1,5 @@
 import { createHash, timingSafeEqual } from "node:crypto";
+import { getSiteUrl } from "./site";
 
 const CHECKOUT_URL = "https://www.liqpay.ua/api/3/checkout";
 
@@ -57,5 +58,5 @@ export type LiqpayCallback = {
 export const decodeCallback = (data: string): LiqpayCallback =>
   JSON.parse(Buffer.from(data, "base64").toString("utf8"));
 
-export const siteUrl = () =>
-  `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL ?? "assorte.vercel.app"}`;
+// Return and callback addresses for LiqPay: always the real site address (NEXT_PUBLIC_SITE_URL).
+export const siteUrl = () => getSiteUrl();

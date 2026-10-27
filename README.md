@@ -31,6 +31,13 @@
 
 Поки `NEXT_PUBLIC_SITE_URL` не заданий або це адреса `*.vercel.app` (а також на всіх preview-збірках), сайт закритий від індексації: `robots.txt` → `Disallow: /`, на всіх сторінках `noindex`, у відповідях заголовок `X-Robots-Tag`. Логіка в `src/lib/site.ts`, покрита тестами.
 
+## Підключення домену (assorte.com.ua)
+
+1. Vercel → проєкт → Settings → Domains → додати домен (і `www`), у регістратора внести DNS-записи, які покаже Vercel.
+2. Vercel → Environment Variables: `NEXT_PUBLIC_SITE_URL=https://assorte.com.ua` **лише для Production**, потім Redeploy.
+3. Після цього автоматично: індексація й `sitemap.xml` вмикаються, canonical і посилання в сповіщеннях та LiqPay ведуть на новий домен, а `assorte.vercel.app` перенаправляє (301) на нього.
+4. Додати сайт у Google Search Console та надіслати `https://assorte.com.ua/sitemap.xml`.
+
 ## Перед запуском на бойовому домені
 
 - [ ] Додати домен у Vercel і задати `NEXT_PUBLIC_SITE_URL=https://<домен>` **тільки для Production** (так вмикається індексація). Перевірити `https://<домен>/robots.txt`.
