@@ -6,6 +6,7 @@ import { placeOrder, type OrderState } from "@/app/actions/order";
 import { clearCart, useCart } from "@/lib/cart";
 import { formatUah } from "@/lib/format";
 import { ONLINE_DISCOUNT_PERCENT, onlineDiscount } from "@/lib/pricing";
+import { NovaPoshtaPicker } from "./NovaPoshtaPicker";
 
 const initial: OrderState = { status: "idle" };
 
@@ -109,19 +110,20 @@ export function CheckoutForm({ onlineEnabled }: { onlineEnabled: boolean }) {
             <input type="radio" name="delivery" value="ukrposhta" checked={delivery === "ukrposhta"} onChange={() => setDelivery("ukrposhta")} className="accent-[#b60016]" />
             Укрпошта: відділення
           </label>
-          <label className={label}>
-            Місто
-            <input name="city" required autoComplete="address-level2" className={field} />
-          </label>
-          <label className={label}>
-            {delivery === "ukrposhta" ? "Відділення Укрпошти (або поштовий індекс)" : "Відділення або поштомат"}
-            <input
-              name="address"
-              required
-              placeholder={delivery === "ukrposhta" ? "Наприклад: відділення 49000" : "Наприклад: відділення №12"}
-              className={field}
-            />
-          </label>
+          {delivery === "nova_poshta" ? (
+            <NovaPoshtaPicker />
+          ) : (
+            <>
+              <label className={label}>
+                Місто
+                <input name="city" required autoComplete="address-level2" className={field} />
+              </label>
+              <label className={label}>
+                Відділення Укрпошти (або поштовий індекс)
+                <input name="address" required placeholder="Наприклад: відділення 49000" className={field} />
+              </label>
+            </>
+          )}
         </fieldset>
 
         <fieldset className="space-y-3">
