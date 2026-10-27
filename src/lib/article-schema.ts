@@ -29,7 +29,7 @@ export const articleSchema = z
       .max(80, "Адреса сторінки: до 80 символів.")
       .regex(slugPattern, "Адреса сторінки: лише малі латинські літери, цифри та дефіси."),
     excerpt: z.string().trim().max(300, "Короткий анонс: до 300 символів."),
-    body: z.string().max(50_000, "Текст задовгий."),
+    body: z.string().max(150_000, "Текст задовгий."),
     seo_title: optional(60, "SEO-заголовок: до 60 символів."),
     meta_description: optional(160, "Опис для Google: до 160 символів."),
     title_accent: optional(200, "Частина заголовка червоним: до 200 символів."),

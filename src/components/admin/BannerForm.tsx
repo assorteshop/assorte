@@ -15,7 +15,10 @@ export type BannerRow = {
   image_url: string | null;
   tone: string;
   is_active: boolean;
+  article_id?: string | null;
 };
+
+export type ArticleOption = { id: string; title: string; is_published: boolean };
 
 export type LinkOption = { href: string; label: string; group: string };
 
@@ -24,7 +27,17 @@ const field = "mt-1.5 w-full rounded-[4px] border border-line bg-white px-4 text
 const label = "block text-[13px]";
 const CUSTOM = "__custom";
 
-export function BannerForm({ banner, options }: { banner: BannerRow; options: LinkOption[] }) {
+export function BannerForm({
+  banner,
+  options,
+  articles,
+}: {
+  banner: BannerRow;
+  options: LinkOption[];
+  articles: ArticleOption[];
+}) {
+  const [articleId, setArticleId] = useState(banner.article_id ?? "");
+  const linked = articles.find((a) => a.id === articleId);
   const [state, action, pending] = useActionState(saveBanner, initial);
   const known = options.some((o) => o.href === banner.href);
   const [choice, setChoice] = useState(known ? banner.href : CUSTOM);
@@ -54,25 +67,56 @@ export function BannerForm({ banner, options }: { banner: BannerRow; options: Li
       <input type="hidden" name="slot" value={banner.slot} />
       <input type="hidden" name="image_url" value={image} />
       <input type="hidden" name="href" value={href} />
+      <input type="hidden" name="article_id" value={articleId} />
 
       <h2 className="text-[17px]">Блок {banner.slot}</h2>
+      <label className={`${label} mt-4 max-w-[560px]`}>
+        Що показує блок
+        <select value={articleId} onChange={(e) => setArticleId(e.target.value)} className={field}>
+          <option value="">Власний текст і посилання</option>
+          {articles.map((a) => (
+            <option key={a.id} value={a.id}>
+              Стаття: {a.title}{a.is_published ? "" : " (чернетка)"}
+            </option>
+          ))}
+        </select>
+      </label>
+      {articleId && (
+        <p className={`mt-2 max-w-[640px] text-[12px] ${linked && !linked.is_published ? "text-red" : "text-muted"}`}>
+          {linked && !linked.is_published
+            ? "Увага: стаття не опублікована. На головній блок буде без кнопки, доки ви її не опублікуєте."
+            : "Заголовок, анонс і фото беруться зі статті автоматично. Кнопка веде на статтю."}
+        </p>
+      )}
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <label className={label}>
           Малий надпис над заголовком
           <input name="eyebrow" defaultValue={banner.eyebrow} maxLength={80} className={field} />
         </label>
-        <label className={label}>
-          Заголовок
-          <input name="title" required defaultValue={banner.title} maxLength={120} className={field} />
-        </label>
-        <label className={`${label} md:col-span-2`}>
-          Додатковий рядок (необовʼязково)
-          <input name="body" defaultValue={banner.body ?? ""} maxLength={200} className={field} />
-        </label>
+        {!articleId && (
+          <>
+            <label className={label}>
+              Заголовок
+              <input name="title" required defaultValue={banner.title} maxLength={120} className={field} />
+            </label>
+            <label className={`${label} md:col-span-2`}>
+              Додатковий рядок (необовʼязково)
+              <input name="body" defaultValue={banner.body ?? ""} maxLength={200} className={field} />
+            </label>
+          </>
+        )}
         <label className={label}>
           Текст кнопки
-          <input name="button_label" required defaultValue={banner.button_label} maxLength={30} className={field} />
+          <input
+            key={articleId ? "article" : "own"}
+            name="button_label"
+            required
+            defaultValue={articleId && !banner.article_id ? "Читати далі" : banner.button_label}
+            maxLength={30}
+            className={field}
+          />
         </label>
+        {!articleId && (
         <label className={label}>
           Куди веде кнопка
           <select value={choice} onChange={(e) => setChoice(e.target.value)} className={field}>
@@ -86,7 +130,8 @@ export function BannerForm({ banner, options }: { banner: BannerRow; options: Li
             <option value={CUSTOM}>Інша адреса…</option>
           </select>
         </label>
-        {choice === CUSTOM && (
+        )}
+        {!articleId && choice === CUSTOM && (
           <label className={`${label} md:col-span-2`}>
             Адреса (починається з / або https://)
             <input value={custom} onChange={(e) => setCustom(e.target.value)} className={field} />

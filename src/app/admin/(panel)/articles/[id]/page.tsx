@@ -18,7 +18,7 @@ export default async function EditArticle(props: PageProps<"/admin/articles/[id]
 
   const { data: products } = await supabase
     .from("products")
-    .select("id, slug, name, variant_label")
+    .select("id, slug, name, variant_label, price_uah, is_published")
     .eq("is_published", true)
     .order("name");
 

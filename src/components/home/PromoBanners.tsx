@@ -31,7 +31,8 @@ export async function PromoBanners() {
           <div className="relative flex h-full max-w-[260px] flex-col items-start">
             <p className="text-[10px] font-medium uppercase tracking-[0.25em]">{b.eyebrow}</p>
             <h2 className="mt-4 text-[26px] leading-[1.15]">{b.title}</h2>
-            {b.body && <p className="mt-4 text-[13px]">{b.body}</p>}
+            {b.body && <p className="mt-4 line-clamp-3 text-[13px]">{b.body}</p>}
+            {b.href && (
             <Link
               href={b.href}
               className={`mt-auto inline-flex items-center gap-2 rounded-[4px] px-4 py-2.5 text-[13px] font-medium ${
@@ -40,6 +41,7 @@ export async function PromoBanners() {
             >
               {b.button_label} <ArrowRight size={14} />
             </Link>
+            )}
           </div>
         </div>
       ))}

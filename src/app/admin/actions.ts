@@ -239,24 +239,29 @@ export async function saveBanner(_prev: FormState, formData: FormData): Promise<
   const href = text("href");
   const image = text("image_url");
   const tone = text("tone");
+  const articleId = text("article_id");
+  const fromArticle = articleId !== "";
 
   if (![1, 2, 3].includes(slot)) return { error: "Невідомий блок." };
-  if (!title || title.length > 120) return { error: "Заголовок: до 120 символів." };
+  if (fromArticle && !/^[0-9a-f-]{36}$/i.test(articleId)) return { error: "Оберіть статтю зі списку." };
+  if (!fromArticle && (!title || title.length > 120)) return { error: "Заголовок: до 120 символів." };
+  if (title.length > 120) return { error: "Заголовок: до 120 символів." };
   if (eyebrow.length > 80 || body.length > 200 || buttonLabel.length > 30) {
     return { error: "Один із текстів задовгий." };
   }
   if (!buttonLabel) return { error: "Вкажіть текст кнопки." };
-  if (!urlOk(href) || href.length > 300) return { error: "Посилання має починатися з / або https://" };
+  if (!fromArticle && (!urlOk(href) || href.length > 300)) return { error: "Посилання має починатися з / або https://" };
   if (image && (!urlOk(image) || image.length > 500)) return { error: "Некоректне посилання на фото." };
   if (tone !== "light" && tone !== "red") return { error: "Оберіть колір блоку." };
 
   const { error } = await supabase.from("home_banners").upsert({
     slot,
     eyebrow,
-    title,
+    title: title || "Стаття",
     body: body || null,
     button_label: buttonLabel,
-    href,
+    href: fromArticle ? "/blog" : href,
+    article_id: fromArticle ? articleId : null,
     image_url: image || null,
     tone,
     is_active: formData.get("is_active") === "on",

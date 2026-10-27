@@ -7,6 +7,7 @@ import { ProductGallery } from "@/components/catalog/ProductGallery";
 import { SiteShell } from "@/components/SiteShell";
 import { getCategory } from "@/lib/categories";
 import { formatUah } from "@/lib/format";
+import { getArticleForProduct } from "@/lib/articles";
 import { getProductBySlug, getVariants } from "@/lib/products";
 
 export async function generateMetadata(
@@ -20,7 +21,7 @@ async function Content(props: PageProps<"/products/[slug]">) {
   const product = await getProductBySlug((await props.params).slug);
   if (!product) notFound();
   const category = product.category ? getCategory(product.category) : undefined;
-  const variants = await getVariants(product.article);
+  const [variants, guide] = await Promise.all([getVariants(product.article), getArticleForProduct(product.id)]);
 
   return (
     <section className="mx-auto max-w-[1280px] px-5 py-8 md:px-8 md:py-12">
@@ -93,6 +94,15 @@ async function Content(props: PageProps<"/products/[slug]">) {
           )}
 
           <AddToCartButton product={product} variant="full" />
+
+          {guide && (
+            <p className="mt-6 text-[14px]">
+              Як обрати —{" "}
+              <Link href={`/blog/${guide.slug}`} className="text-red underline underline-offset-4">
+                читайте в блозі: {guide.title}
+              </Link>
+            </p>
+          )}
         </div>
       </div>
     </section>
