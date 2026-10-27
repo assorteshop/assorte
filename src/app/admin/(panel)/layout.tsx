@@ -15,6 +15,7 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
             <Link href="/admin/articles" className="hover:text-red">Статті</Link>
             <Link href="/admin/banners" className="hover:text-red">Блоки на головній</Link>
             <Link href="/admin/orders" className="hover:text-red">Замовлення</Link>
+            <Link href="/admin/reviews" className="hover:text-red">Відгуки</Link>
           </nav>
           <form action={logout} className="ml-auto">
             <button type="submit" className="text-[13px] text-muted hover:text-red">

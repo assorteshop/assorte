@@ -5,6 +5,9 @@ import { Suspense } from "react";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { ProductGallery } from "@/components/catalog/ProductGallery";
 import { DeliveryPayment } from "@/components/product/DeliveryPayment";
+import { ProductTabs } from "@/components/product/ProductTabs";
+import { ReviewsPanel } from "@/components/product/ReviewsPanel";
+import { ReviewsSummaryLink } from "@/components/product/ReviewsSummaryLink";
 import { ExpandableText } from "@/components/product/ExpandableText";
 import { SiteShell } from "@/components/SiteShell";
 import { getCategory } from "@/lib/categories";
@@ -13,6 +16,7 @@ import { getArticleForProduct } from "@/lib/articles";
 import { liqpayConfigured } from "@/lib/liqpay";
 import { getProductBySlug, getVariants } from "@/lib/products";
 import { richTextToHtml } from "@/lib/rich-text";
+import { getProductReviews } from "@/lib/reviews";
 
 export async function generateMetadata(
   props: PageProps<"/products/[slug]">,
@@ -26,7 +30,11 @@ async function Content(props: PageProps<"/products/[slug]">) {
   if (!product) notFound();
   const category = product.category ? getCategory(product.category) : undefined;
   const descriptionHtml = richTextToHtml(product.description);
-  const [variants, guide] = await Promise.all([getVariants(product.article), getArticleForProduct(product.id)]);
+  const [variants, guide, reviews] = await Promise.all([
+    getVariants(product.article),
+    getArticleForProduct(product.id),
+    getProductReviews(product.id),
+  ]);
 
   return (
     <section className="mx-auto max-w-[1280px] px-5 py-8 md:px-8 md:py-12">
@@ -96,6 +104,8 @@ async function Content(props: PageProps<"/products/[slug]">) {
             <AddToCartButton product={product} variant="inline" />
           </div>
 
+          <ReviewsSummaryLink count={reviews.count} average={reviews.average} />
+
           <DeliveryPayment onlineEnabled={liqpayConfigured()} />
 
           {guide && (
@@ -108,32 +118,33 @@ async function Content(props: PageProps<"/products/[slug]">) {
           )}
         </div>
 
-        {descriptionHtml && (
-          <section className="md:col-start-1" aria-labelledby="product-description-title">
-            <h2 id="product-description-title" className="text-[24px] md:text-[28px]">Опис</h2>
-            <div className="mt-4">
-              <ExpandableText html={descriptionHtml} />
-            </div>
-          </section>
-        )}
-
-        {product.specs.length > 0 && (
-          <section className="md:col-start-1" aria-labelledby="product-specs-title">
-            <h2 id="product-specs-title" className="text-[24px] md:text-[28px]">Характеристики</h2>
-            <table className="mt-4 w-full border-collapse text-[14px] leading-normal">
-              <tbody>
-                {product.specs.map((row, i) => (
-                  <tr key={`${row.name}-${i}`} className={i % 2 === 0 ? "bg-white" : ""}>
-                    <th scope="row" className="w-[42%] border-b border-line px-4 py-3 text-left font-medium align-top">
-                      {row.name}
-                    </th>
-                    <td className="border-b border-line px-4 py-3 align-top">{row.value}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </section>
-        )}
+        <section className="md:col-start-1">
+          <ProductTabs
+            reviewCount={reviews.count}
+            description={
+              descriptionHtml ? <ExpandableText html={descriptionHtml} /> : <p className="text-[15px] text-muted">Опис ще не додано.</p>
+            }
+            specs={
+              product.specs.length > 0 ? (
+                <table className="w-full border-collapse text-[14px] leading-normal">
+                  <tbody>
+                    {product.specs.map((row, i) => (
+                      <tr key={`${row.name}-${i}`} className={i % 2 === 0 ? "bg-white" : ""}>
+                        <th scope="row" className="w-[42%] border-b border-line px-4 py-3 text-left font-medium align-top">
+                          {row.name}
+                        </th>
+                        <td className="border-b border-line px-4 py-3 align-top">{row.value}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p className="text-[15px] text-muted">Характеристики ще не додані.</p>
+              )
+            }
+            reviews={<ReviewsPanel slug={product.slug} reviews={reviews} />}
+          />
+        </section>
       </div>
     </section>
   );
