@@ -16,13 +16,14 @@ export type Product = {
   colors: string[];
   article: string | null;
   variant_label: string | null;
+  specs: { name: string; value: string }[];
 };
 
 // A catalogue card: all products sharing one article collapse into a single card.
 export type ProductCardData = Product & { variantCount: number; priceFrom: boolean };
 
 const columns =
-  "id, slug, name, tagline, description, price_uah, badge, image_url, images, category, colors, article, variant_label";
+  "id, slug, name, tagline, description, price_uah, badge, image_url, images, category, colors, article, variant_label, specs";
 
 // Shown only while Supabase is not configured, so the layout can be reviewed.
 // Names, taglines and prices come from the approved homepage design.
@@ -40,6 +41,7 @@ const designPlaceholders: Product[] = [
     category: "tech",
     article: null,
     variant_label: null,
+    specs: [],
     colors: ["#171717", "#e9e1d6", "#5d7260", "#e9a0a0"],
   },
   {
@@ -55,6 +57,7 @@ const designPlaceholders: Product[] = [
     category: "style",
     article: null,
     variant_label: null,
+    specs: [],
     colors: ["#5a2e1f", "#171717", "#d9c2a7"],
   },
   {
@@ -70,6 +73,7 @@ const designPlaceholders: Product[] = [
     category: "gifts",
     article: null,
     variant_label: null,
+    specs: [],
     colors: ["#8a5a35", "#e6c9a8", "#6e5a3a"],
   },
 ];

@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { saveProduct, type FormState } from "@/app/admin/actions";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { categories } from "@/lib/categories";
 import { createSupabaseBrowser } from "@/lib/supabase-browser";
 
@@ -18,6 +19,7 @@ type Product = {
   colors: string[] | null;
   article: string | null;
   variant_label: string | null;
+  specs?: { name: string; value: string }[] | null;
   images: string[] | null;
   image_url: string | null;
   is_published: boolean;
@@ -69,6 +71,7 @@ export function ProductForm({ product, prefill }: { product?: Product; prefill?:
   const [images, setImages] = useState<string[]>(
     product?.images?.length ? product.images : product?.image_url ? [product.image_url] : [],
   );
+  const [specs, setSpecs] = useState<{ name: string; value: string }[]>(product?.specs ?? []);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
 
@@ -121,6 +124,7 @@ export function ProductForm({ product, prefill }: { product?: Product; prefill?:
     <form action={action} className="mt-6 space-y-8">
       {product && <input type="hidden" name="id" value={product.id} />}
       <input type="hidden" name="images" value={JSON.stringify(images)} />
+      <input type="hidden" name="specs" value={JSON.stringify(specs)} />
 
       <div className="grid gap-5 md:grid-cols-2">
         <label className={`${label} md:col-span-2`}>
@@ -171,7 +175,7 @@ export function ProductForm({ product, prefill }: { product?: Product; prefill?:
               <input name="article" defaultValue={base?.article ?? ""} maxLength={40} placeholder="Наприклад: Г-1" className={field} />
             </label>
             <label className={label}>
-              Варіант (обовʼязково, якщо є артикул)
+              Варіант (необовʼязково)
               <input name="variant_label" defaultValue={product?.variant_label ?? ""} maxLength={40} placeholder="Наприклад: 10 кг" className={field} />
             </label>
           </div>
@@ -180,10 +184,9 @@ export function ProductForm({ product, prefill }: { product?: Product; prefill?:
           Короткий опис під назвою
           <input name="tagline" defaultValue={base?.tagline ?? ""} maxLength={200} className={field} />
         </label>
-        <label className={`${label} md:col-span-2`}>
-          Повний опис
-          <textarea name="description" rows={6} defaultValue={base?.description ?? ""} className={`${field} h-auto py-3`} />
-        </label>
+        <div className="md:col-span-2">
+          <RichTextEditor name="description" initial={base?.description} label="Повний опис (жирний, курсив, підкреслений, списки)" />
+        </div>
         <label className={label}>
           Кольори (необовʼязково)
           <input name="colors" defaultValue={base?.colors?.join(", ") ?? ""} placeholder="#171717, #e9e1d6" className={field} />
@@ -193,6 +196,41 @@ export function ProductForm({ product, prefill }: { product?: Product; prefill?:
           <input name="sort_order" type="number" step={1} defaultValue={base?.sort_order ?? 100} className={field} />
         </label>
       </div>
+
+      <fieldset>
+        <legend className="text-[15px]">Характеристики</legend>
+        <p className="mt-1 text-[12px] text-muted">Показуються таблицею під описом (наприклад: Вага — 213 г). До 30 рядків.</p>
+        <ul className="mt-3 space-y-2">
+          {specs.map((row, i) => (
+            <li key={i} className="grid gap-2 md:grid-cols-[1fr_1.4fr_auto]">
+              <input
+                aria-label={`Назва характеристики ${i + 1}`}
+                value={row.name}
+                maxLength={80}
+                placeholder="Назва"
+                onChange={(e) => setSpecs((prev) => prev.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))}
+                className="h-11 rounded-[4px] border border-line bg-white px-3 text-[14px]"
+              />
+              <input
+                aria-label={`Значення ${i + 1}`}
+                value={row.value}
+                maxLength={300}
+                placeholder="Значення"
+                onChange={(e) => setSpecs((prev) => prev.map((x, j) => (j === i ? { ...x, value: e.target.value } : x)))}
+                className="h-11 rounded-[4px] border border-line bg-white px-3 text-[14px]"
+              />
+              <button type="button" onClick={() => setSpecs((prev) => prev.filter((_, j) => j !== i))} className="text-[12px] text-red underline underline-offset-4">
+                Видалити
+              </button>
+            </li>
+          ))}
+        </ul>
+        {specs.length < 30 && (
+          <button type="button" onClick={() => setSpecs((prev) => [...prev, { name: "", value: "" }])} className="mt-3 rounded-[4px] border border-graphite px-4 py-2.5 text-[13px]">
+            + Додати характеристику
+          </button>
+        )}
+      </fieldset>
 
       <fieldset>
         <legend className="text-[15px]">Фото</legend>

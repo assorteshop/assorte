@@ -13,7 +13,7 @@ type Props = {
     image_url: string | null;
     variant_label?: string | null;
   };
-  variant: "icon" | "full";
+  variant: "icon" | "full" | "inline";
 };
 
 export function AddToCartButton({ product, variant }: Props) {
@@ -47,6 +47,29 @@ export function AddToCartButton({ product, variant }: Props) {
       >
         {added ? <Check size={18} strokeWidth={2} /> : <ShoppingCart size={18} strokeWidth={1.75} />}
       </button>
+    );
+  }
+
+  if (variant === "inline") {
+    // Next to the price on the product page.
+    return (
+      <div>
+        <button
+          type="button"
+          onClick={add}
+          className="inline-flex items-center justify-center gap-2.5 rounded-[4px] bg-red px-5 py-4 text-[15px] font-medium text-white sm:gap-3 sm:px-7"
+        >
+          {added ? <Check size={18} /> : <ShoppingCart size={18} strokeWidth={1.75} />}
+          {added ? "Додано в кошик" : "Додати в кошик"}
+        </button>
+        <p role="status" className="mt-2 min-h-5 text-[13px]">
+          {inCart && (
+            <Link href="/cart" className="text-red underline underline-offset-4">
+              Перейти до кошика
+            </Link>
+          )}
+        </p>
+      </div>
     );
   }
 
