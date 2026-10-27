@@ -5,7 +5,7 @@ import { X } from "lucide-react";
 import { saveArticle, type FormState } from "@/app/admin/actions";
 import { categories } from "@/lib/categories";
 import { ArticleBody } from "@/components/blog/ArticleBody";
-import { fillPhotoSlot, isHtmlArticle, listPhotoSlots, readArticle } from "@/lib/article-html";
+import { fillPhotoSlot, isHtmlArticle, listPhotoSlots, looksGarbled, readArticle } from "@/lib/article-html";
 import { uploadImage } from "@/lib/upload";
 
 type Article = {
@@ -93,6 +93,7 @@ export function ArticleForm({ article, products }: { article?: Article; products
   const [eyebrow, setEyebrow] = useState(article?.eyebrow ?? "");
   const [titleAccent, setTitleAccent] = useState(article?.title_accent ?? "");
   const [filledFromPaste, setFilledFromPaste] = useState<string[]>([]);
+  const [articleH1, setArticleH1] = useState("");
   const [productToInsert, setProductToInsert] = useState("");
   const [busy, setBusy] = useState(false);
   const [uploadError, setUploadError] = useState("");
@@ -146,7 +147,11 @@ export function ArticleForm({ article, products }: { article?: Article; products
     if (!seoTitle && m.seo.title) { setSeoTitle(m.seo.title); filled.push("SEO-заголовок"); }
     if (!metaDescription && m.seo.description) { setMetaDescription(m.seo.description); filled.push("опис для Google"); }
     if (!eyebrow && m.eyebrow) { setEyebrow(m.eyebrow.slice(0, 60)); filled.push("надпис над заголовком"); }
-    if (!titleAccent && m.accent) { setTitleAccent(m.accent); filled.push("червону частину заголовка"); }
+    if (!titleAccent && m.accent && (title || m.h1 || "").includes(m.accent)) {
+      setTitleAccent(m.accent);
+      filled.push("червону частину заголовка");
+    }
+    setArticleH1(m.h1 && m.h1 !== (title || m.h1) ? m.h1 : "");
     setFilledFromPaste(filled);
   };
 
@@ -196,6 +201,21 @@ export function ArticleForm({ article, products }: { article?: Article; products
             className={field}
           />
         </label>
+        {articleH1 && (
+          <p className="rounded-[4px] bg-[#fff8db] px-3 py-2 text-[13px] md:col-span-2">
+            У вставленій статті заголовок інший: «{articleH1}».{" "}
+            <button
+              type="button"
+              onClick={() => {
+                setTitle(articleH1);
+                setArticleH1("");
+              }}
+              className="text-red underline underline-offset-4"
+            >
+              Взяти його
+            </button>
+          </p>
+        )}
         <label className={`${label} md:col-span-2`}>
           Адреса сторінки (латиницею)
           <input
@@ -222,6 +242,9 @@ export function ArticleForm({ article, products }: { article?: Article; products
         <label className={label}>
           Частина заголовка червоним
           <input name="title_accent" value={titleAccent} onChange={(e) => setTitleAccent(e.target.value)} maxLength={200} placeholder="Має входити в заголовок дослівно" className={field} />
+          {titleAccent && !title.includes(titleAccent) && (
+            <span className="mt-1 block text-[12px] text-red">Цієї фрази немає в заголовку: змініть заголовок або очистіть це поле.</span>
+          )}
         </label>
         <label className={label}>
           Категорія статті
@@ -332,6 +355,13 @@ export function ArticleForm({ article, products }: { article?: Article; products
               <p className="text-muted">Поки порожньо.</p>
             )}
           </div>
+        )}
+        {looksGarbled(body) && (
+          <p role="alert" className="mt-2 rounded-[4px] bg-[#fdecee] px-3 py-2 text-[13px] text-red">
+            Текст схожий на пошкоджений: замість літер кракозябри (так буває, якщо копіювати зі сторінки браузера з неправильною
+            кодуванням). Очистіть поле й вставте статтю заново з Claude chat (кнопка «Copy») або з файлу через текстовий редактор.
+            Зберегти такий текст не вийде.
+          </p>
         )}
         {filledFromPaste.length > 0 && (
           <p className="mt-2 rounded-[4px] bg-[#e3f1e6] px-3 py-2 text-[13px] text-[#1f6b34]">

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { looksGarbled } from "./article-html";
 import { categories } from "./categories";
 
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -78,6 +79,14 @@ export const articleSchema = z
     is_published: z.boolean(),
   })
   .superRefine((a, ctx) => {
+    if (looksGarbled(a.body)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["body"],
+        message:
+          "Текст схожий на пошкоджений (кракозябри через кодування). Скопіюйте статтю заново: з Claude chat кнопкою «Copy» або з файлу через текстовий редактор, не зі сторінки браузера.",
+      });
+    }
     if (a.title_accent && !a.title.includes(a.title_accent)) {
       ctx.addIssue({
         code: "custom",

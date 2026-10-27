@@ -5,6 +5,7 @@ import {
   fillPhotoSlot,
   isHtmlArticle,
   listPhotoSlots,
+  looksGarbled,
   readArticle,
   rewriteHref,
   splitProductMarkers,
@@ -105,5 +106,17 @@ describe("helpers", () => {
 
   it("estimates reading time", () => {
     expect(readArticle(reference).readingMinutes).toBeGreaterThanOrEqual(5);
+  });
+});
+
+describe("looksGarbled", () => {
+  const garbled =
+    "Р“С–Рґ ASSORTE В· РЎРјР°СЂС‚ РїР°РІРµСЂР±Р°РЅРє РЅР° 10 000 РјРђРі вЂ” С†Рµ РЅРµ РЅР°Р№Р±С–Р»СЊС€Рµ С‡РёСЃР»Рѕ. Р”РёСЃРїР»РµР№ В«РґРѕРґР°С‚РєРѕРІРѕВ».";
+  it("flags text that was copied through the wrong encoding", () => {
+    expect(looksGarbled(garbled)).toBe(true);
+  });
+  it("does not flag normal Ukrainian text or the reference article", () => {
+    expect(looksGarbled(reference)).toBe(false);
+    expect(looksGarbled("Річка Рось та Рівне — міста України. Ремонт, Розділ, Роздрібна ціна.")).toBe(false);
   });
 });

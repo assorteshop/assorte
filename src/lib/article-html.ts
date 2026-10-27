@@ -243,3 +243,14 @@ export function splitProductMarkers(body: string): BodyPart[] {
 
 export const productSlugsIn = (body: string) =>
   splitProductMarkers(body).flatMap((p) => (p.type === "product" ? [p.slug] : []));
+
+// ---------- garbled text (wrong encoding) ----------
+
+// UTF-8 Cyrillic read as Windows-1251 looks like "Р“С–Рґ" instead of "Гід". It happens when a
+// text is copied from a browser tab that guessed the encoding wrong. Normal Ukrainian text
+// almost never has a capital Р/С directly followed by these punctuation-like letters.
+const GARBLE = /[РС][‚ѓ„…†‡€‰Љ‹ЊЌЋЏђ‘’“”•–—™љ›њќћџЎўЈ¤Ґ¦§Ё©Є«¬®°±µ¶·№»]/g;
+
+export function looksGarbled(text: string): boolean {
+  return (text.match(GARBLE)?.length ?? 0) >= 8;
+}
