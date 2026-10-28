@@ -11,7 +11,11 @@ export async function PromoBanners() {
         <div
           key={b.slot}
           className={`relative min-h-[300px] overflow-hidden p-8 md:min-h-[272px] ${
-            b.tone === "red" ? "bg-red text-white" : "bg-[#ebe6e0] text-graphite"
+            b.tone === "red"
+              ? "bg-red text-white"
+              : b.image_url
+                ? "bg-graphite text-white"
+                : "bg-[#ebe6e0] text-graphite"
           }`}
         >
           {b.image_url && (
@@ -20,11 +24,7 @@ export async function PromoBanners() {
               <img src={b.image_url} alt="" className="absolute inset-0 size-full object-cover" />
               <div
                 aria-hidden
-                className={`absolute inset-0 ${
-                  b.tone === "red"
-                    ? "bg-gradient-to-r from-red/85 via-red/50 to-transparent"
-                    : "bg-gradient-to-r from-white/85 via-white/45 to-transparent"
-                }`}
+                className={`absolute inset-0 ${b.tone === "red" ? "bg-red/70" : "bg-graphite/60"}`}
               />
             </>
           )}
