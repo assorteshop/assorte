@@ -118,7 +118,8 @@ export async function getFeaturedProducts(limit = 12): Promise<ProductCardData[]
     .select(columns)
     .eq("is_published", true)
     .eq("is_featured", true)
-    .order("sort_order", { ascending: true })
+    .order("featured_order", { ascending: true, nullsFirst: false })
+    .order("created_at", { ascending: true })
     .limit(60);
 
   if (error) {
