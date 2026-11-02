@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { CartView } from "@/components/cart/CartView";
 import { SiteShell } from "@/components/SiteShell";
 
-export const metadata: Metadata = { title: "Кошик — ASSORTE" };
+export const metadata: Metadata = { title: "Кошик — ASSORTE", robots: { index: false } };
 
 export default function CartPage() {
   return (

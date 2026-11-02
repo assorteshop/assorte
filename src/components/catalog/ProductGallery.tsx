@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { productAlt } from "@/lib/seo";
 
 export function ProductGallery({
   images,
@@ -20,7 +21,7 @@ export function ProductGallery({
         {images[active] && (
           <Image
             src={images[active]}
-            alt={alt}
+            alt={productAlt(alt, active)}
             fill
             priority={active === 0}
             sizes="(min-width: 768px) 50vw, 100vw"
@@ -46,7 +47,7 @@ export function ProductGallery({
                   i === active ? "ring-2 ring-graphite" : "ring-1 ring-line"
                 }`}
               >
-                <Image src={src} alt="" fill sizes="100px" className="object-cover" />
+                <Image src={src} alt={productAlt(alt, i)} fill sizes="100px" className="object-cover" />
               </button>
             </li>
           ))}

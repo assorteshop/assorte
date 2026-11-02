@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteShell } from "@/components/SiteShell";
 
-export const metadata: Metadata = { title: "Дякуємо — ASSORTE" };
+export const metadata: Metadata = { title: "Дякуємо — ASSORTE", robots: { index: false } };
 
 export default function CheckoutResult() {
   return (

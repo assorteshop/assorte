@@ -9,6 +9,7 @@ import { ProductTabs } from "@/components/product/ProductTabs";
 import { ReviewsPanel } from "@/components/product/ReviewsPanel";
 import { ReviewsSummaryLink } from "@/components/product/ReviewsSummaryLink";
 import { ExpandableText } from "@/components/product/ExpandableText";
+import { JsonLd } from "@/components/JsonLd";
 import { SiteShell } from "@/components/SiteShell";
 import { getCategory } from "@/lib/categories";
 import { formatUah } from "@/lib/format";
@@ -17,12 +18,24 @@ import { liqpayConfigured } from "@/lib/liqpay";
 import { getProductBySlug, getVariants } from "@/lib/products";
 import { richTextToHtml } from "@/lib/rich-text";
 import { getProductReviews } from "@/lib/reviews";
+import { descriptionSnippet, productJsonLd } from "@/lib/seo";
+import { getSiteUrl } from "@/lib/site";
 
 export async function generateMetadata(
   props: PageProps<"/products/[slug]">,
 ): Promise<Metadata> {
   const product = await getProductBySlug((await props.params).slug);
-  return { title: product ? `${product.name} — ASSORTE` : "Товар — ASSORTE" };
+  if (!product) return { title: "Товар — ASSORTE" };
+  const title = `${product.name} — ASSORTE`;
+  const description = descriptionSnippet(product.description) || undefined;
+  const path = `/products/${product.slug}`;
+  const image = product.images[0] ?? product.image_url ?? undefined;
+  return {
+    title,
+    description,
+    alternates: { canonical: path },
+    openGraph: { title, description, url: path, type: "website", images: image ? [image] : undefined },
+  };
 }
 
 async function Content(props: PageProps<"/products/[slug]">) {
@@ -38,6 +51,14 @@ async function Content(props: PageProps<"/products/[slug]">) {
 
   return (
     <section className="mx-auto max-w-[1280px] px-5 py-8 md:px-8 md:py-12">
+      <JsonLd
+        data={productJsonLd({
+          product,
+          category,
+          base: getSiteUrl(),
+          description: descriptionSnippet(product.description),
+        })}
+      />
       <nav aria-label="Навігація" className="text-[12px] text-muted">
         <Link href="/catalog" className="hover:text-red">Каталог</Link>
         {category && (
