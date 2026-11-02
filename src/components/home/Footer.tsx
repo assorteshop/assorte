@@ -15,6 +15,7 @@ const info = [
   { href: "/delivery-and-payment", label: "Доставка і оплата" },
   { href: "/returns", label: "Повернення" },
   { href: "/terms", label: "Публічна оферта" },
+  { href: "/privacy", label: "Політика конфіденційності" },
   { href: "/contacts", label: "Контакти" },
 ];
 

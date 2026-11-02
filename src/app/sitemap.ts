@@ -16,6 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/delivery-and-payment` },
     { url: `${base}/returns` },
     { url: `${base}/terms` },
+    { url: `${base}/privacy` },
     { url: `${base}/contacts` },
     ...articles.map((a) => ({ url: `${base}/blog/${a.slug}`, lastModified: a.updated_at ?? undefined })),
     ...products.map((slug) => ({ url: `${base}/products/${slug}` })),

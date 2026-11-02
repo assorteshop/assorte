@@ -9,12 +9,14 @@ export function LegalPage({
   intro,
   body,
   showDate = true,
+  updated = LEGAL_UPDATED,
 }: {
   eyebrow: string;
   title: string;
   intro?: string;
   body: string;
   showDate?: boolean;
+  updated?: string;
 }) {
   return (
     <SiteShell>
@@ -26,7 +28,7 @@ export function LegalPage({
           <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-red">{eyebrow}</p>
           <h1 className="mt-3 text-[32px] leading-tight md:text-[44px]">{title}</h1>
           {intro && <p className="mt-4 text-[17px] leading-relaxed text-[#3A3A3A]">{intro}</p>}
-          {showDate && <p className="mt-3 text-[13px] text-muted">Редакція від {LEGAL_UPDATED}</p>}
+          {showDate && <p className="mt-3 text-[13px] text-muted">Редакція від {updated}</p>}
           <div className="mt-4">
             <Markdown>{body}</Markdown>
           </div>

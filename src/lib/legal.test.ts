@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { deliveryPaymentText, offerText, returnsText, sellerLines } from "./legal";
+import { deliveryPaymentText, offerText, privacyText, returnsText, sellerLines } from "./legal";
 import { parseSettingsForm } from "./settings-schema";
 
 describe("seller details", () => {
@@ -21,7 +21,7 @@ describe("seller details", () => {
 });
 
 describe("page texts promise nothing invented", () => {
-  const all = [deliveryPaymentText({ onlineEnabled: true }), deliveryPaymentText({ onlineEnabled: false }), returnsText({}), offerText({})].join("\n");
+  const all = [deliveryPaymentText({ onlineEnabled: true }), deliveryPaymentText({ onlineEnabled: false }), returnsText({}), offerText({}), privacyText({})].join("\n");
   it("has no delivery price, no delivery time in days or hours, no warranty period", () => {
     expect(all).not.toMatch(/\d+\s*(грн|₴)/);
     expect(all).not.toMatch(/протягом\s+\d+\s*(годин|діб|робочих)/i);
@@ -36,6 +36,25 @@ describe("page texts promise nothing invented", () => {
   it("uses the contacts in the text only when they exist", () => {
     expect(returnsText({ contact_phone: "+380501112233" })).toContain("за телефоном +380501112233");
     expect(returnsText({})).toContain("через сторінку «Контакти»");
+  });
+});
+
+describe("privacy policy", () => {
+  it("names the data the shop really collects and no tracking it does not use", () => {
+    const t = privacyText({});
+    for (const word of ["імʼя", "телефон", "Нова пошта", "Укрпошта", "Telegram", "платіжн"]) expect(t).toContain(word);
+    expect(t).toContain("не використовує рекламні й аналітичні cookie");
+  });
+  it("promises no storage period and no guaranteed security", () => {
+    const t = privacyText({});
+    expect(t).not.toMatch(/\d+\s*(рок|міс|днів|дн)/i);
+    expect(t).toContain("не можемо гарантувати повну безпеку");
+  });
+  it("puts the seller block and contacts in when available", () => {
+    const t = privacyText({ seller_name: "ФОП Тест", contact_email: "a@b.ua" });
+    expect(t).toContain("Продавець: ФОП Тест");
+    expect(t).toContain("на email a@b.ua");
+    expect(privacyText({})).toContain("Реквізити продавця будуть опубліковані");
   });
 });
 
