@@ -186,7 +186,8 @@ export function CheckoutForm({ onlineEnabled }: { onlineEnabled: boolean }) {
         </button>
         <p className="mt-3 text-[12px] leading-relaxed text-muted">
           Підтверджуючи замовлення, ви погоджуєтеся з{" "}
-          <Link href="/terms" className="underline underline-offset-2 hover:text-red">публічною офертою</Link>. Умови{" "}
+          <Link href="/terms" className="underline underline-offset-2 hover:text-red">публічною офертою</Link> та{" "}
+          <Link href="/privacy" className="underline underline-offset-2 hover:text-red">політикою конфіденційності</Link>. Умови{" "}
           <Link href="/delivery-and-payment" className="underline underline-offset-2 hover:text-red">доставки й оплати</Link> та{" "}
           <Link href="/returns" className="underline underline-offset-2 hover:text-red">повернення</Link>.
         </p>
