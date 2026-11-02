@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { Footer } from "@/components/home/Footer";
 import { Header } from "@/components/home/Header";
 import { Hero } from "@/components/home/Hero";
+import { OrganizationJsonLd } from "@/components/home/OrganizationJsonLd";
 import { PopularProducts } from "@/components/home/PopularProducts";
 import { PromoBanners } from "@/components/home/PromoBanners";
 import { TrustBar } from "@/components/home/TrustBar";
@@ -17,6 +18,9 @@ export default function Home() {
           <PopularProducts />
         </Suspense>
         <PromoBanners />
+        <Suspense fallback={null}>
+          <OrganizationJsonLd />
+        </Suspense>
       </main>
       <Footer />
     </>

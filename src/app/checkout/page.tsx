@@ -3,7 +3,7 @@ import { CheckoutForm } from "@/components/cart/CheckoutForm";
 import { SiteShell } from "@/components/SiteShell";
 import { liqpayConfigured } from "@/lib/liqpay";
 
-export const metadata: Metadata = { title: "Оформлення замовлення — ASSORTE" };
+export const metadata: Metadata = { title: "Оформлення замовлення — ASSORTE", robots: { index: false } };
 
 export default function CheckoutPage() {
   return (
