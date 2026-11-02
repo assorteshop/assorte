@@ -6,6 +6,7 @@ import { parseArticleForm } from "@/lib/article-schema";
 import { parseSettingsForm } from "@/lib/settings-schema";
 import { plainTextOf, sanitizeRichText } from "@/lib/rich-text";
 import { categories } from "@/lib/categories";
+import { moveInOrder, orderValue } from "@/lib/featured-order";
 import { createSupabaseServer, requireAdmin } from "@/lib/supabase-server";
 
 export type FormState = { error: string | null };
@@ -125,9 +126,30 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
     sort_order: sortOrder,
   };
 
+  // A product newly marked as popular goes to the end of the slider; unmarking removes it.
+  let featuredOrder: number | null | undefined;
+  if (!row.is_featured) {
+    featuredOrder = null;
+  } else {
+    const { data: current } = id
+      ? await supabase.from("products").select("featured_order").eq("id", id).maybeSingle()
+      : { data: null };
+    if (current?.featured_order == null) {
+      const { data: last } = await supabase
+        .from("products")
+        .select("featured_order")
+        .not("featured_order", "is", null)
+        .order("featured_order", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      featuredOrder = (last?.featured_order ?? 0) + 10;
+    }
+  }
+  const saved = featuredOrder === undefined ? row : { ...row, featured_order: featuredOrder };
+
   const { error } = id
-    ? await supabase.from("products").update(row).eq("id", id)
-    : await supabase.from("products").insert(row);
+    ? await supabase.from("products").update(saved).eq("id", id)
+    : await supabase.from("products").insert(saved);
 
   if (error) {
     if (error.code === "23505") {
@@ -143,6 +165,27 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
 
   updateTag("products");
   redirect("/admin/products");
+}
+
+export async function moveFeatured(formData: FormData) {
+  const { supabase } = await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const dir = formData.get("dir") === "up" ? "up" : "down";
+
+  const { data } = await supabase
+    .from("products")
+    .select("id")
+    .eq("is_featured", true)
+    .order("featured_order", { ascending: true, nullsFirst: false })
+    .order("created_at", { ascending: true });
+  const ids = (data ?? []).map((p) => p.id as string);
+  const next = moveInOrder(ids, id, dir);
+
+  await Promise.all(
+    next.map((productId, i) => supabase.from("products").update({ featured_order: orderValue(i) }).eq("id", productId)),
+  );
+  updateTag("products");
+  redirect("/admin/featured");
 }
 
 export async function deleteProduct(formData: FormData) {
