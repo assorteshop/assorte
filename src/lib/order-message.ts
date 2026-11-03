@@ -15,13 +15,32 @@ export function processedMessage(order: {
   customer_name: string;
   delivery_method: string;
 }): string {
-  const carrier = order.delivery_method === "ukrposhta" ? "Укрпоштою" : "Новою поштою";
-  return `Вітаємо, ${order.customer_name}! Ваше замовлення №${order.number} в ASSORTE оброблено. Очікуйте доставку ${carrier}: після відправлення ми надішлемо номер накладної. Дякуємо, що обрали нас!`;
+  return `Вітаємо, ${order.customer_name}! Ваше замовлення №${order.number} в ASSORTE оброблено. Очікуйте доставку ${carrierName(order.delivery_method)}: після відправлення ми надішлемо номер накладної. Дякуємо, що обрали нас!`;
+}
+
+const carrierName = (method: string) => (method === "ukrposhta" ? "Укрпоштою" : "Новою поштою");
+
+// Waybill number as typed or pasted: spaces and line breaks removed.
+export const cleanTracking = (raw: string) => raw.replace(/\s+/g, "");
+
+export function trackingUrl(deliveryMethod: string, tracking: string): string {
+  const n = encodeURIComponent(cleanTracking(tracking));
+  return deliveryMethod === "ukrposhta"
+    ? `https://track.ukrposhta.ua/tracking_UA.html?barcode=${n}`
+    : `https://novaposhta.ua/tracking/?cargo_number=${n}`;
+}
+
+export function shippedMessage(
+  order: { number: number; customer_name: string; delivery_method: string },
+  tracking: string,
+): string {
+  const n = cleanTracking(tracking);
+  return `Вітаємо, ${order.customer_name}! Ваше замовлення №${order.number} в ASSORTE відправлено ${carrierName(order.delivery_method)}. Номер накладної: ${n}. Відстежити посилку: ${trackingUrl(order.delivery_method, n)}. Дякуємо, що обрали нас!`;
 }
 
 export type MessageLink = { label: string; href: string };
 
-export function messageLinks(args: { phone: string; email: string | null; number: number; text: string }): MessageLink[] {
+export function messageLinks(args: { phone: string; email: string | null; subject: string; text: string }): MessageLink[] {
   const digits = normalizeUaPhone(args.phone);
   const text = encodeURIComponent(args.text);
   const links: MessageLink[] = [];
@@ -34,8 +53,7 @@ export function messageLinks(args: { phone: string; email: string | null; number
     );
   }
   if (args.email) {
-    const subject = encodeURIComponent(`Замовлення №${args.number} в ASSORTE оброблено`);
-    links.push({ label: "Email", href: `mailto:${args.email}?subject=${subject}&body=${text}` });
+    links.push({ label: "Email", href: `mailto:${args.email}?subject=${encodeURIComponent(args.subject)}&body=${text}` });
   }
   return links;
 }

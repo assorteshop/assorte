@@ -2,7 +2,6 @@ import { formatUah } from "@/lib/format";
 import { requireAdmin } from "@/lib/supabase-server";
 import { setOrderStatus } from "@/app/admin/actions";
 import { OrderMessage } from "@/components/admin/OrderMessage";
-import { messageLinks, processedMessage } from "@/lib/order-message";
 
 const statuses: Record<string, string> = {
   new: "Нове",
@@ -65,10 +64,7 @@ export default async function AdminOrders() {
                   </li>
                 ))}
               </ul>
-              <OrderMessage
-                text={processedMessage(o)}
-                links={messageLinks({ phone: o.phone, email: o.email, number: o.number, text: processedMessage(o) })}
-              />
+              <OrderMessage order={o} />
               <form action={setOrderStatus} className="mt-4 flex items-center gap-3">
                 <input type="hidden" name="id" value={o.id} />
                 <select name="status" defaultValue={o.status} className="h-10 rounded-[4px] border border-line bg-white px-3 text-[13px]">

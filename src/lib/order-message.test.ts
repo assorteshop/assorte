@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { messageLinks, normalizeUaPhone, processedMessage } from "./order-message";
+import { cleanTracking, messageLinks, normalizeUaPhone, processedMessage, shippedMessage, trackingUrl } from "./order-message";
 
 describe("normalizeUaPhone", () => {
   it.each([
@@ -31,7 +31,7 @@ describe("processedMessage", () => {
 });
 
 describe("messageLinks", () => {
-  const args = { phone: "0689392121", email: "a@b.ua", number: 1001, text: "Привіт & дякуємо" };
+  const args = { phone: "0689392121", email: "a@b.ua", subject: "Тема №1", text: "Привіт & дякуємо" };
   it("opens each channel with the text filled in where the channel allows", () => {
     const links = Object.fromEntries(messageLinks(args).map((l) => [l.label, l.href]));
     expect(links.Viber).toBe("viber://chat?number=%2B380689392121");
@@ -42,5 +42,24 @@ describe("messageLinks", () => {
   });
   it("skips phone channels for an unreadable number and email when there is none", () => {
     expect(messageLinks({ ...args, phone: "123", email: null })).toEqual([]);
+  });
+});
+
+describe("shipped message with the waybill", () => {
+  const order = { number: 1001, customer_name: "Іван Петренко", delivery_method: "nova_poshta" };
+  it("cleans the number and builds a Nova Poshta tracking link", () => {
+    expect(cleanTracking(" 5945 0012 3456 78\n")).toBe("59450012345678");
+    expect(trackingUrl("nova_poshta", "59450012345678")).toBe("https://novaposhta.ua/tracking/?cargo_number=59450012345678");
+  });
+  it("builds an Ukrposhta tracking link", () => {
+    expect(trackingUrl("ukrposhta", "0501234567890")).toBe("https://track.ukrposhta.ua/tracking_UA.html?barcode=0501234567890");
+  });
+  it("puts order, carrier, number and link into the text, with no delivery time promised", () => {
+    const t = shippedMessage(order, "5945 0012 3456 78");
+    expect(t).toContain("№1001");
+    expect(t).toContain("відправлено Новою поштою");
+    expect(t).toContain("Номер накладної: 59450012345678");
+    expect(t).toContain("https://novaposhta.ua/tracking/?cargo_number=59450012345678");
+    expect(t).not.toMatch(/\d+\s*(дн|год|діб)/i);
   });
 });
