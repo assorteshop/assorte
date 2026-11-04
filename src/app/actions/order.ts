@@ -3,6 +3,7 @@
 import { after } from "next/server";
 import { buildCheckout, liqpayConfigured, siteUrl } from "@/lib/liqpay";
 import { notifyNewOrder } from "@/lib/notify";
+import { encodeContact } from "@/lib/order-message";
 import { supabase } from "@/lib/supabase";
 
 export type OrderState =
@@ -19,7 +20,8 @@ export async function placeOrder(_prev: OrderState, formData: FormData): Promise
   const email = text("email");
   const city = text("city");
   const address = text("address");
-  const comment = text("comment");
+  // The preferred way to reach the customer goes in front of the comment, so it shows in the admin and in Telegram.
+  const comment = encodeContact(text("messenger"), text("comment"));
   const payment = text("payment") === "liqpay" ? "liqpay" : "cod";
   const delivery = text("delivery") === "ukrposhta" ? "ukrposhta" : "nova_poshta";
 

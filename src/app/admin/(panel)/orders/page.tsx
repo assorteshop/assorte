@@ -2,6 +2,7 @@ import { formatUah } from "@/lib/format";
 import { requireAdmin } from "@/lib/supabase-server";
 import { setOrderStatus } from "@/app/admin/actions";
 import { OrderMessage } from "@/components/admin/OrderMessage";
+import { CONTACT_CHANNELS, parseContact } from "@/lib/order-message";
 
 const statuses: Record<string, string> = {
   new: "Нове",
@@ -28,7 +29,9 @@ export default async function AdminOrders() {
         <p className="mt-8 text-muted">Замовлень ще немає.</p>
       ) : (
         <ul className="mt-6 space-y-3">
-          {orders.map((o) => (
+          {orders.map((o) => {
+            const contact = parseContact(o.comment);
+            return (
             <li key={o.id} className="rounded-[6px] bg-white p-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-[16px] font-medium">
@@ -55,7 +58,12 @@ export default async function AdminOrders() {
                   </span>
                 )}
               </p>
-              {o.comment && <p className="mt-1 text-[13px]">Коментар: {o.comment}</p>}
+              {contact.channel && (
+                <p className="mt-1 text-[13px]">
+                  Клієнт обрав: <span className="font-medium">{CONTACT_CHANNELS.find((c) => c.id === contact.channel)?.label}</span>
+                </p>
+              )}
+              {contact.rest && <p className="mt-1 whitespace-pre-line text-[13px]">Коментар: {contact.rest}</p>}
               <ul className="mt-3 space-y-1 border-t border-line pt-3 text-[13px]">
                 {o.order_items.map((it) => (
                   <li key={it.id} className="flex justify-between gap-4">
@@ -64,7 +72,7 @@ export default async function AdminOrders() {
                   </li>
                 ))}
               </ul>
-              <OrderMessage order={o} />
+              <OrderMessage order={o} preferred={contact.channel} />
               <form action={setOrderStatus} className="mt-4 flex items-center gap-3">
                 <input type="hidden" name="id" value={o.id} />
                 <select name="status" defaultValue={o.status} className="h-10 rounded-[4px] border border-line bg-white px-3 text-[13px]">
@@ -77,7 +85,8 @@ export default async function AdminOrders() {
                 </button>
               </form>
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
     </>

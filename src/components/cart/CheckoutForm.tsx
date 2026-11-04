@@ -6,6 +6,7 @@ import { placeOrder, type OrderState } from "@/app/actions/order";
 import { clearCart, useCart } from "@/lib/cart";
 import { formatUah } from "@/lib/format";
 import { ONLINE_DISCOUNT_PERCENT, onlineDiscount } from "@/lib/pricing";
+import { CONTACT_CHANNELS } from "@/lib/order-message";
 import { NovaPoshtaPicker } from "./NovaPoshtaPicker";
 
 const initial: OrderState = { status: "idle" };
@@ -98,6 +99,19 @@ export function CheckoutForm({ onlineEnabled }: { onlineEnabled: boolean }) {
             Email (необовʼязково)
             <input name="email" type="email" autoComplete="email" className={field} />
           </label>
+        </fieldset>
+
+        <fieldset className="space-y-3">
+          <legend className="text-[18px]">Як вам зручніше отримувати повідомлення про замовлення?</legend>
+          <div className="flex flex-wrap gap-2">
+            {CONTACT_CHANNELS.map((c) => (
+              <label key={c.id} className="flex items-center gap-2 rounded-[4px] bg-white px-4 py-3 text-[14px]">
+                <input type="radio" name="messenger" value={c.id} defaultChecked={c.id === "sms"} className="accent-[#b60016]" />
+                {c.label}
+              </label>
+            ))}
+          </div>
+          <p className="text-[12px] text-muted">Напишемо на номер телефону, який ви вказали вище.</p>
         </fieldset>
 
         <fieldset className="space-y-4">

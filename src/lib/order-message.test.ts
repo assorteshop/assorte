@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cleanTracking, messageLinks, normalizeUaPhone, processedMessage, shippedMessage, trackingUrl } from "./order-message";
+import { cleanTracking, encodeContact, messageLinks, parseContact, normalizeUaPhone, processedMessage, shippedMessage, trackingUrl } from "./order-message";
 
 describe("normalizeUaPhone", () => {
   it.each([
@@ -61,5 +61,27 @@ describe("shipped message with the waybill", () => {
     expect(t).toContain("Номер накладної: 59450012345678");
     expect(t).toContain("https://novaposhta.ua/tracking/?cargo_number=59450012345678");
     expect(t).not.toMatch(/\d+\s*(дн|год|діб)/i);
+  });
+});
+
+describe("preferred contact channel in the order comment", () => {
+  it("is put in front of the comment and read back", () => {
+    const saved = encodeContact("viber", "Подзвоніть після 18:00");
+    expect(saved).toBe("Зв’язок: Viber\nПодзвоніть після 18:00");
+    expect(parseContact(saved)).toEqual({ channel: "viber", rest: "Подзвоніть після 18:00" });
+  });
+  it("works without a customer comment", () => {
+    expect(encodeContact("sms", "")).toBe("Зв’язок: SMS");
+    expect(parseContact("Зв’язок: SMS")).toEqual({ channel: "sms", rest: "" });
+    expect(parseContact("Зв’язок: Лише дзвінок").channel).toBe("call");
+  });
+  it("leaves the comment alone for an unknown channel and for old orders", () => {
+    expect(encodeContact("fax", "привіт")).toBe("привіт");
+    expect(parseContact("Просто коментар")).toEqual({ channel: null, rest: "Просто коментар" });
+    expect(parseContact(null)).toEqual({ channel: null, rest: "" });
+  });
+  it("offers a call link along with the messengers", () => {
+    const call = messageLinks({ phone: "0689392121", email: null, subject: "s", text: "t" }).find((l) => l.id === "call");
+    expect(call?.href).toBe("tel:+380689392121");
   });
 });

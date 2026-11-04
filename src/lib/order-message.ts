@@ -38,7 +38,35 @@ export function shippedMessage(
   return `Вітаємо, ${order.customer_name}! Ваше замовлення №${order.number} в ASSORTE відправлено ${carrierName(order.delivery_method)}. Номер накладної: ${n}. Відстежити посилку: ${trackingUrl(order.delivery_method, n)}. Дякуємо, що обрали нас!`;
 }
 
-export type MessageLink = { label: string; href: string };
+export type ChannelId = "sms" | "viber" | "telegram" | "whatsapp" | "call";
+
+// How the customer wants to hear from us. Chosen at checkout and saved as the first line of the order comment.
+export const CONTACT_CHANNELS: { id: ChannelId; label: string }[] = [
+  { id: "sms", label: "SMS" },
+  { id: "viber", label: "Viber" },
+  { id: "telegram", label: "Telegram" },
+  { id: "whatsapp", label: "WhatsApp" },
+  { id: "call", label: "Лише дзвінок" },
+];
+
+const CONTACT_PREFIX = "Зв’язок: ";
+const channelLabel = (id: ChannelId) => CONTACT_CHANNELS.find((c) => c.id === id)!.label;
+const isChannel = (v: string): v is ChannelId => CONTACT_CHANNELS.some((c) => c.id === v);
+
+export function encodeContact(channel: string, comment: string): string {
+  if (!isChannel(channel)) return comment;
+  return `${CONTACT_PREFIX}${channelLabel(channel)}${comment ? `\n${comment}` : ""}`;
+}
+
+export function parseContact(comment: string | null): { channel: ChannelId | null; rest: string } {
+  const text = comment ?? "";
+  const first = text.split("\n", 1)[0];
+  const found = CONTACT_CHANNELS.find((c) => first === `${CONTACT_PREFIX}${c.label}`);
+  if (!found) return { channel: null, rest: text };
+  return { channel: found.id, rest: text.slice(first.length).replace(/^\n/, "") };
+}
+
+export type MessageLink = { id: ChannelId | "email"; label: string; href: string };
 
 export function messageLinks(args: { phone: string; email: string | null; subject: string; text: string }): MessageLink[] {
   const digits = normalizeUaPhone(args.phone);
@@ -46,14 +74,15 @@ export function messageLinks(args: { phone: string; email: string | null; subjec
   const links: MessageLink[] = [];
   if (digits) {
     links.push(
-      { label: "Viber", href: `viber://chat?number=%2B${digits}` },
-      { label: "WhatsApp", href: `https://wa.me/${digits}?text=${text}` },
-      { label: "Telegram", href: `https://t.me/+${digits}` },
-      { label: "SMS", href: `sms:+${digits}?body=${text}` },
+      { id: "viber", label: "Viber", href: `viber://chat?number=%2B${digits}` },
+      { id: "whatsapp", label: "WhatsApp", href: `https://wa.me/${digits}?text=${text}` },
+      { id: "telegram", label: "Telegram", href: `https://t.me/+${digits}` },
+      { id: "sms", label: "SMS", href: `sms:+${digits}?body=${text}` },
+      { id: "call", label: "Подзвонити", href: `tel:+${digits}` },
     );
   }
   if (args.email) {
-    links.push({ label: "Email", href: `mailto:${args.email}?subject=${encodeURIComponent(args.subject)}&body=${text}` });
+    links.push({ id: "email", label: "Email", href: `mailto:${args.email}?subject=${encodeURIComponent(args.subject)}&body=${text}` });
   }
   return links;
 }
