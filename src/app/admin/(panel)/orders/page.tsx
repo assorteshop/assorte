@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/supabase-server";
 import { setOrderStatus } from "@/app/admin/actions";
 import { OrderMessage } from "@/components/admin/OrderMessage";
 import { CONTACT_CHANNELS, parseContact } from "@/lib/order-message";
+import { firstTouchLabel } from "@/lib/analytics";
 
 const statuses: Record<string, string> = {
   new: "Нове",
@@ -21,6 +22,20 @@ export default async function AdminOrders() {
     )
     .order("created_at", { ascending: false })
     .limit(200);
+
+  // The order source lives in a separate column added later (supabase/migration-first-touch.sql).
+  // It is read on its own, so the order list keeps working before that SQL is run.
+  const sources = new Map<string, string>();
+  if (orders?.length) {
+    const { data: ft } = await supabase
+      .from("orders")
+      .select("id, first_touch")
+      .in("id", orders.map((o) => o.id));
+    for (const row of (ft ?? []) as { id: string; first_touch: unknown }[]) {
+      const label = firstTouchLabel(row.first_touch);
+      if (label) sources.set(row.id, label);
+    }
+  }
 
   return (
     <>
@@ -49,6 +64,9 @@ export default async function AdminOrders() {
               </p>
               <p className="text-[13px] text-muted">
                 {o.delivery_method === "ukrposhta" ? "Укрпошта" : "Нова пошта"}: {o.city}, {o.delivery_address}
+              </p>
+              <p className="mt-1 text-[13px] text-muted">
+                Джерело: {sources.get(o.id) ?? "невідомо"}
               </p>
               <p className="mt-1 text-[13px]">
                 {o.payment_method === "liqpay" ? "Онлайн-оплата (LiqPay): " : "Оплата при отриманні"}

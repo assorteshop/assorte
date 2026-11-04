@@ -5,11 +5,12 @@ import { buildCheckout, liqpayConfigured, siteUrl } from "@/lib/liqpay";
 import { notifyNewOrder } from "@/lib/notify";
 import { encodeContact } from "@/lib/order-message";
 import { supabase } from "@/lib/supabase";
+import { parseFirstTouchField } from "@/lib/analytics";
 
 export type OrderState =
   | { status: "idle" }
   | { status: "error"; message: string }
-  | { status: "ok"; number: number }
+  | { status: "ok"; number: number; total: number | null }
   | { status: "pay"; url: string; data: string; signature: string };
 
 export async function placeOrder(_prev: OrderState, formData: FormData): Promise<OrderState> {
@@ -77,6 +78,20 @@ export async function placeOrder(_prev: OrderState, formData: FormData): Promise
     return { status: "error", message: "Не вдалося оформити замовлення. Спробуйте пізніше." };
   }
   const number = created.number;
+  const total = typeof created.total === "number" ? created.total : null;
+
+  // Where the customer first came from. Validated here; saving it must never break the order.
+  const firstTouch = parseFirstTouchField(text("first_touch"));
+  if (firstTouch) {
+    const db = supabase;
+    after(async () => {
+      const { error: ftError } = await db.rpc("set_order_first_touch", {
+        p_number: number,
+        p_first_touch: firstTouch,
+      });
+      if (ftError) console.error("[assorte] set_order_first_touch failed:", ftError.message);
+    });
+  }
 
   // Telling the shop owner must never delay or break the customer's order.
   after(() =>
@@ -91,5 +106,5 @@ export async function placeOrder(_prev: OrderState, formData: FormData): Promise
     }
     return { status: "pay", ...buildCheckout({ orderNumber: number, amount: created.total, siteUrl: siteUrl() }) };
   }
-  return { status: "ok", number };
+  return { status: "ok", number, total };
 }
