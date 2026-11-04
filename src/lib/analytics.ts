@@ -43,6 +43,34 @@ const clip = (s: string | null | undefined, max: number) => {
   return v ? v.slice(0, max) : undefined;
 };
 
+// Search engines are named the way Google Analytics names them: "google / organic".
+const SEARCH_ENGINES: [string, RegExp][] = [
+  ["google", /^google\.[a-z.]+$/],
+  ["bing", /^bing\.com$/],
+  ["yahoo", /^(search\.)?yahoo\.com$/],
+  ["duckduckgo", /^duckduckgo\.com$/],
+  ["yandex", /^yandex\.[a-z.]+$/],
+  ["ecosia", /^ecosia\.org$/],
+  ["baidu", /^baidu\.com$/],
+];
+
+/** The search engine for a hostname (www is ignored), or null. mail.google.com and the like are not search. */
+export function searchEngine(host: string): string | null {
+  const h = host.toLowerCase().replace(/^www\./, "");
+  return SEARCH_ENGINES.find(([, re]) => re.test(h))?.[0] ?? null;
+}
+
+/** Source and medium named like GA4: (direct) / (none), google / organic, t.me / referral, x / (not set). */
+export function gaSourceMedium(source: string, medium?: string): { source: string; medium: string } {
+  if (source === "direct" && !medium) return { source: "(direct)", medium: "(none)" };
+  // Orders saved before search engines were recognised: google.com / referral -> google / organic.
+  if (medium === "referral") {
+    const engine = searchEngine(source);
+    if (engine) return { source: engine, medium: "organic" };
+  }
+  return { source, medium: medium || "(not set)" };
+}
+
 /**
  * Works out the first-touch source from the landing URL and document.referrer.
  * Order: utm_* tags, then the referring domain (other than our own), then "direct".
@@ -77,6 +105,8 @@ export function detectFirstTouch(input: { href: string; referrer: string; now?: 
   const ownHost = url?.hostname.toLowerCase().replace(/^www\./, "") ?? "";
   const ref = refHost.replace(/^www\./, "");
   if (ref && ref !== ownHost) {
+    const engine = searchEngine(ref);
+    if (engine) return { source: engine, medium: "organic", landing, at };
     return { source: ref.slice(0, 100), medium: "referral", landing, at };
   }
   return { source: "direct", landing, at };
@@ -106,13 +136,13 @@ export function parseFirstTouchField(raw: string): FirstTouch | null {
   }
 }
 
-/** Short label for the admin: "google · /blog/…", "instagram / social · campaign". */
+/** Short label for the admin, named like GA4: "google / organic · /blog/…", "(direct) / (none) · /". */
 export function firstTouchLabel(ft: unknown): string | null {
   const parsed = firstTouchSchema.safeParse(ft);
   if (!parsed.success) return null;
-  const { source, medium, campaign, landing } = parsed.data;
-  const head = medium ? `${source} / ${medium}` : source;
-  return [head, campaign, landing].filter(Boolean).join(" · ");
+  const { campaign, landing } = parsed.data;
+  const named = gaSourceMedium(parsed.data.source, parsed.data.medium);
+  return [`${named.source} / ${named.medium}`, campaign, landing].filter(Boolean).join(" · ");
 }
 
 /** Where an add-to-cart click happened, from the page path. */

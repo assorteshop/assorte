@@ -4,6 +4,7 @@ import {
   cartSource,
   detectFirstTouch,
   firstTouchLabel,
+  gaSourceMedium,
   getGaId,
   parseFirstTouchField,
   parseStoredFirstTouch,
@@ -45,15 +46,21 @@ describe("detectFirstTouch", () => {
       at: now.toISOString(),
     });
   });
-  it("falls back to the referring domain", () => {
-    const ft = detectFirstTouch({
-      href: "https://assorte.com.ua/blog/dbzh",
-      referrer: "https://www.google.com/",
-      now,
-    });
-    expect(ft.source).toBe("google.com");
-    expect(ft.medium).toBe("referral");
-    expect(ft.landing).toBe("/blog/dbzh");
+  it("names search engines like Google Analytics: google / organic", () => {
+    const from = (referrer: string) =>
+      detectFirstTouch({ href: "https://assorte.com.ua/blog/dbzh", referrer, now });
+    expect(from("https://www.google.com/")).toMatchObject({ source: "google", medium: "organic", landing: "/blog/dbzh" });
+    expect(from("https://www.google.com.ua/")).toMatchObject({ source: "google", medium: "organic" });
+    expect(from("https://www.bing.com/")).toMatchObject({ source: "bing", medium: "organic" });
+    expect(from("https://duckduckgo.com/")).toMatchObject({ source: "duckduckgo", medium: "organic" });
+  });
+  it("falls back to the referring domain as a referral", () => {
+    const ft = detectFirstTouch({ href: "https://assorte.com.ua/", referrer: "https://t.me/assorteshop", now });
+    expect(ft).toMatchObject({ source: "t.me", medium: "referral" });
+    // Not a search page: mail.google.com is a normal referral.
+    expect(
+      detectFirstTouch({ href: "https://assorte.com.ua/", referrer: "https://mail.google.com/", now }),
+    ).toMatchObject({ source: "mail.google.com", medium: "referral" });
   });
   it("is direct without utm and referrer, and ignores our own domain", () => {
     expect(detectFirstTouch({ href: "https://assorte.com.ua/", referrer: "", now }).source).toBe("direct");
@@ -82,9 +89,21 @@ describe("stored and submitted first touch", () => {
     expect(parseFirstTouchField(JSON.stringify({ ...ft, source: "x".repeat(500) }))).toBeNull();
     expect(parseFirstTouchField("x".repeat(3000))).toBeNull();
   });
-  it("makes a short admin label", () => {
+  it("makes a short admin label named like Google Analytics", () => {
     expect(firstTouchLabel(ft)).toBe("t.me / referral · /");
     expect(firstTouchLabel(null)).toBeNull();
+    const label = (source: string, medium?: string, campaign?: string) =>
+      firstTouchLabel({ source, medium, campaign, landing: "/", at: now.toISOString() });
+    expect(label("direct")).toBe("(direct) / (none) · /");
+    expect(label("newsletter")).toBe("newsletter / (not set) · /");
+    expect(label("instagram", "social", "mykolai")).toBe("instagram / social · mykolai · /");
+    expect(label("google", "organic")).toBe("google / organic · /");
+  });
+  it("renames orders saved before search engines were recognised", () => {
+    expect(firstTouchLabel({ source: "google.com", medium: "referral", landing: "/", at: now.toISOString() })).toBe(
+      "google / organic · /",
+    );
+    expect(gaSourceMedium("mail.google.com", "referral")).toEqual({ source: "mail.google.com", medium: "referral" });
   });
 });
 
