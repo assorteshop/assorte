@@ -1,4 +1,5 @@
 import sanitizeHtml from "sanitize-html";
+import { slugFromUrl } from "./article-slug";
 
 // Articles are written in Claude chat and pasted into the admin as-is.
 // Two formats are accepted: the styled HTML Claude produces (see docs/reference) or Markdown.
@@ -164,7 +165,7 @@ export function readArticle(body: string): ArticleMeta {
       seoComment[1].match(new RegExp(`^\\s*${label}\\s*:\\s*(.+)$`, "mi"))?.[1].trim() ?? null;
     const url = line("URL");
     meta.seo = {
-      slug: url ? url.split("/").filter(Boolean).pop() ?? null : null,
+      slug: url ? slugFromUrl(url) || null : null,
       title: line("Title"),
       description: line("Meta description"),
     };

@@ -3,6 +3,7 @@
 import { useActionState, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { saveArticle, type FormState } from "@/app/admin/actions";
+import { cleanSlugInput } from "@/lib/article-slug";
 import { categories } from "@/lib/categories";
 import { ArticleBody } from "@/components/blog/ArticleBody";
 import { fillPhotoSlot, isHtmlArticle, listPhotoSlots, looksGarbled, readArticle } from "@/lib/article-html";
@@ -65,13 +66,13 @@ const toSlug = (name: string) =>
 
 // Whatever is typed into the address field becomes latin letters, digits and hyphens.
 const normalizeSlug = (v: string) =>
-  v
-    .toLowerCase()
-    .split("")
-    .map((ch) => translit[ch] ?? ch)
-    .join("")
-    .replace(/[^a-z0-9-]+/g, "-")
-    .replace(/-{2,}/g, "-");
+  cleanSlugInput(
+    v
+      .toLowerCase()
+      .split("")
+      .map((ch) => translit[ch] ?? ch)
+      .join(""),
+  );
 
 const trimSlug = (v: string) => v.replace(/^-+|-+$/g, "");
 
