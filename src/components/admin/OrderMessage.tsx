@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import {
+  type ChannelId,
   cleanTracking,
   messageLinks,
   processedMessage,
@@ -17,7 +18,11 @@ type Order = {
   email: string | null;
 };
 
-function Send({ text, links }: { text: string; links: MessageLink[] }) {
+// The channel the customer chose goes first and is highlighted; the rest stay as a fallback.
+const withPreferredFirst = (links: MessageLink[], preferred: ChannelId | null) =>
+  preferred ? [...links].sort((a, b) => Number(b.id === preferred) - Number(a.id === preferred)) : links;
+
+function Send({ text, links, preferred }: { text: string; links: MessageLink[]; preferred: ChannelId | null }) {
   const [copied, setCopied] = useState(false);
 
   const copy = async () => {
@@ -34,13 +39,15 @@ function Send({ text, links }: { text: string; links: MessageLink[] }) {
     <>
       <p className="mt-3 break-words rounded-[4px] bg-ivory p-3 text-[13px] leading-relaxed">{text}</p>
       <div className="mt-3 flex flex-wrap gap-2">
-        {links.map((l) => (
+        {withPreferredFirst(links, preferred).map((l) => (
           <a
             key={l.label}
             href={l.href}
             target={l.href.startsWith("http") ? "_blank" : undefined}
             rel="noreferrer"
-            className="rounded-[4px] border border-line px-4 py-2 text-[13px] hover:border-graphite"
+            className={`rounded-[4px] border px-4 py-2 text-[13px] ${
+              l.id === preferred ? "border-red bg-red text-white" : "border-line hover:border-graphite"
+            }`}
           >
             {l.label}
           </a>
@@ -53,7 +60,7 @@ function Send({ text, links }: { text: string; links: MessageLink[] }) {
   );
 }
 
-export function OrderMessage({ order }: { order: Order }) {
+export function OrderMessage({ order, preferred }: { order: Order; preferred: ChannelId | null }) {
   const [tracking, setTracking] = useState("");
   const number = cleanTracking(tracking);
   const expectedDigits = order.delivery_method === "ukrposhta" ? 13 : 14;
@@ -70,6 +77,7 @@ export function OrderMessage({ order }: { order: Order }) {
       <div className="mt-3">
         <p className="text-[13px] font-medium">1. Замовлення оброблено</p>
         <Send
+          preferred={preferred}
           text={processed}
           links={messageLinks({ ...contact, subject: `Замовлення №${order.number} в ASSORTE оброблено`, text: processed })}
         />
@@ -94,6 +102,7 @@ export function OrderMessage({ order }: { order: Order }) {
         )}
         {number ? (
           <Send
+            preferred={preferred}
             text={shipped}
             links={messageLinks({ ...contact, subject: `Замовлення №${order.number} в ASSORTE відправлено`, text: shipped })}
           />
