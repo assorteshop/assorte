@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
+import { TrackViewItem } from "@/components/product/TrackViewItem";
 import { ProductGallery } from "@/components/catalog/ProductGallery";
 import { DeliveryPayment } from "@/components/product/DeliveryPayment";
 import { ProductTabs } from "@/components/product/ProductTabs";
@@ -123,6 +124,7 @@ async function Content(props: PageProps<"/products/[slug]">) {
           <div className="mt-6 flex flex-wrap items-start gap-x-6 gap-y-3">
             <p className="pt-2.5 text-[26px] font-medium leading-none sm:text-[28px]">{formatUah(product.price_uah)}</p>
             <AddToCartButton product={product} variant="inline" />
+            <TrackViewItem slug={product.slug} name={product.name} price={product.price_uah} />
           </div>
 
           <ReviewsSummaryLink count={reviews.count} average={reviews.average} />

@@ -8,6 +8,7 @@ import { formatUah } from "@/lib/format";
 import { ONLINE_DISCOUNT_PERCENT, onlineDiscount } from "@/lib/pricing";
 import { CONTACT_CHANNELS } from "@/lib/order-message";
 import { NovaPoshtaPicker } from "./NovaPoshtaPicker";
+import { FIRST_TOUCH_KEY, parseStoredFirstTouch, track, trackPurchaseOnce } from "@/lib/analytics";
 
 const initial: OrderState = { status: "idle" };
 
@@ -24,7 +25,43 @@ export function CheckoutForm({ onlineEnabled }: { onlineEnabled: boolean }) {
   const [payment, setPayment] = useState<"cod" | "liqpay">("cod");
   const discount = payment === "liqpay" ? onlineDiscount(total) : 0;
 
+  // Where the customer first came from (utm, referrer or direct), saved with the order.
+  const [firstTouch] = useState(() => {
+    if (typeof window === "undefined") return "";
+    try {
+      const ft = parseStoredFirstTouch(window.localStorage.getItem(FIRST_TOUCH_KEY));
+      return ft ? JSON.stringify(ft) : "";
+    } catch {
+      return ""; // No storage: the order is saved without a source.
+    }
+  });
+
+  // GA4 begin_checkout, once per visit to the checkout page with a non-empty cart.
+  const checkoutTracked = useRef(false);
   useEffect(() => {
+    if (checkoutTracked.current || items.length === 0) return;
+    checkoutTracked.current = true;
+    track("begin_checkout", {
+      currency: "UAH",
+      value: total,
+      items: items.map((i) => ({ item_id: i.slug, item_name: i.name, price: i.price_uah, quantity: i.qty })),
+    });
+  }, [items, total]);
+
+  // The order lines are needed for purchase after the cart is cleared.
+  const orderedItems = useRef(items);
+  useEffect(() => {
+    if (items.length) orderedItems.current = items;
+  }, [items]);
+
+  useEffect(() => {
+    if (state.status === "ok") {
+      trackPurchaseOnce(
+        state.number,
+        state.total ?? orderedItems.current.reduce((sum, i) => sum + i.price_uah * i.qty, 0),
+        orderedItems.current.map((i) => ({ item_id: i.slug, item_name: i.name, price: i.price_uah, quantity: i.qty })),
+      );
+    }
     if (state.status === "ok" || state.status === "pay") clearCart();
     if (state.status === "pay") payForm.current?.submit();
   }, [state]);
@@ -83,6 +120,7 @@ export function CheckoutForm({ onlineEnabled }: { onlineEnabled: boolean }) {
         name="items"
         value={JSON.stringify(items.map((i) => ({ slug: i.slug, qty: i.qty })))}
       />
+      <input type="hidden" name="first_touch" value={firstTouch} />
 
       <div className="space-y-8">
         <fieldset className="space-y-4">

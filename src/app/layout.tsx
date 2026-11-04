@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Manrope, Marck_Script } from "next/font/google";
 import { getSiteUrl, isIndexingEnabled } from "@/lib/site";
+import { activeGaId } from "@/lib/analytics";
+import { Analytics } from "@/components/Analytics";
 import "./globals.css";
 
 const inter = Inter({
@@ -35,7 +37,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="uk"
       className={`${inter.variable} ${manrope.variable} ${script.variable} antialiased`}
     >
-      <body>{children}</body>
+      <body>
+        {children}
+        <Analytics gaId={activeGaId()} />
+      </body>
     </html>
   );
 }

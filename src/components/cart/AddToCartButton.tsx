@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Check, ShoppingCart } from "lucide-react";
 import { addToCart, useCart } from "@/lib/cart";
+import { cartSource, track } from "@/lib/analytics";
 
 type Props = {
   product: {
@@ -33,6 +34,12 @@ export function AddToCartButton({ product, variant }: Props) {
       name: product.variant_label ? `${product.name} — ${product.variant_label}` : product.name,
       price_uah: product.price_uah,
       image: product.image_url,
+    });
+    track("add_to_cart", {
+      currency: "UAH",
+      value: product.price_uah,
+      source: cartSource(window.location.pathname),
+      items: [{ item_id: product.slug, item_name: product.name, price: product.price_uah, quantity: 1 }],
     });
     setAdded(true);
   };

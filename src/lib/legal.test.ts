@@ -43,11 +43,20 @@ describe("privacy policy", () => {
   it("names the data the shop really collects and no tracking it does not use", () => {
     const t = privacyText({});
     for (const word of ["імʼя", "телефон", "Нова пошта", "Укрпошта", "Telegram", "платіжн"]) expect(t).toContain(word);
-    expect(t).toContain("не використовує рекламні й аналітичні cookie");
+    expect(t).toContain("Сайт не використовує рекламні cookie");
+    expect(t).not.toContain("аналітичні cookie");
   });
-  it("promises no storage period and no guaranteed security", () => {
+  it("tells about Google Analytics, what is not sent to it, and how to opt out", () => {
     const t = privacyText({});
-    expect(t).not.toMatch(/\d+\s*(рок|міс|днів|дн)/i);
+    expect(t).toContain("Google Analytics 4");
+    expect(t).toContain("не передаються імʼя, телефон, email та адреса доставки");
+    expect(t).toContain("Як відмовитися від аналітики");
+    expect(t).toContain("блокувальником");
+  });
+  it("promises no storage period for the shop's data and no guaranteed security", () => {
+    const t = privacyText({});
+    const retention = t.slice(t.indexOf("## 6."), t.indexOf("## 7."));
+    expect(retention).not.toMatch(/\d+\s*(рок|міс|днів|дн)/i);
     expect(t).toContain("не можемо гарантувати повну безпеку");
   });
   it("puts the seller block and contacts in when available", () => {
