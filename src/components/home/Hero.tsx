@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Pause, Play } from "lucide-react";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Heart } from "@/components/brand/Heart";
-import { heroSlides as slides } from "@/lib/hero-slides";
+import { shownHeroSlides as slides } from "@/lib/hero-slides";
 
 const SLIDE_MS = 6500;
 
@@ -31,7 +31,7 @@ export function Hero() {
   };
 
   useEffect(() => {
-    if (still || paused) return;
+    if (still || paused || slides.length < 2) return;
     const t = setInterval(() => {
       setActive((a) => {
         const next = (a + 1) % slides.length;
@@ -44,7 +44,7 @@ export function Hero() {
 
   return (
     <section
-      aria-roledescription="carousel"
+      aria-roledescription={slides.length > 1 ? "carousel" : undefined}
       aria-label="ASSORTE: більше, ніж просто речі"
       className="relative h-[100svh] min-h-[560px] overflow-hidden bg-graphite text-white"
     >
@@ -99,7 +99,7 @@ export function Hero() {
             </Link>
           </div>
 
-          {!still && (
+          {!still && slides.length > 1 && (
             <div className="absolute bottom-10 right-5 flex items-center gap-2 md:bottom-16 md:right-8">
               {slides.map((s, i) => (
                 <button
