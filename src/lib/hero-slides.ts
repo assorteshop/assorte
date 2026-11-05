@@ -57,3 +57,7 @@ export const heroSlides: HeroSlide[] = [
     alt: "Алекс у теплому вечірньому світлі",
   },
 ];
+
+// For now the first screen shows only the first photo (lemon at the eye), without the slideshow.
+// All photos stay above; to bring the slideshow back, set this to heroSlides.
+export const shownHeroSlides: HeroSlide[] = heroSlides.slice(0, 1);
