@@ -3,6 +3,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import {
+  ArrowRight,
+  ArrowUpRight,
+  Check,
   Gem,
   Gift,
   Heart,
@@ -99,8 +102,8 @@ async function CategoryTiles() {
               <p className="text-[12px] font-semibold uppercase tracking-[0.04em]">{category.eyebrow}</p>
               <p className="mt-0.5 truncate text-[12px] text-muted">{categoryTagline[category.slug]}</p>
             </div>
-            <span className="grid size-8 shrink-0 place-items-center text-graphite/60 transition-colors group-hover:text-red">
-              <BrandHeart className="h-6 w-auto" />
+            <span className="grid size-8 shrink-0 place-items-center rounded-full border border-line text-graphite group-hover:border-red group-hover:text-red">
+              <ArrowRight size={15} />
             </span>
           </div>
         </Link>
@@ -166,7 +169,7 @@ export default function AboutPage() {
               </p>
             </div>
             <div className="mt-6 inline-flex items-center gap-3 rounded-[8px] bg-red px-5 py-3.5 text-white">
-              <BrandHeart className="h-7 w-auto shrink-0" />
+              <Check size={22} strokeWidth={2} aria-hidden />
               <div>
                 <p className="text-[15px] font-medium leading-tight">Обрано ASSORTE</p>
                 <p className="mt-0.5 text-[12px] opacity-90">Не все проходить відбір.</p>
@@ -224,9 +227,9 @@ export default function AboutPage() {
           </p>
           <Link
             href="/blog"
-            className="mt-6 inline-flex items-center gap-2 rounded-[4px] bg-red px-6 py-3.5 text-[14px] font-medium text-white"
+            className="mt-6 inline-flex items-center gap-2 rounded-full bg-red px-6 py-3.5 text-[14px] font-medium text-white"
           >
-            Дізнатися більше <BrandHeart className="h-[1.15em] w-auto" />
+            Дізнатися більше <ArrowRight size={15} />
           </Link>
         </div>
         <ul className="grid gap-4 sm:grid-cols-3">
@@ -267,7 +270,9 @@ export default function AboutPage() {
           <ul className="mx-5 mb-10 space-y-3.5 rounded-[10px] bg-white px-6 py-6 md:m-8">
             {principles.map((p) => (
               <li key={p} className="flex items-center gap-3 text-[14px]">
-                <BrandHeart className="h-5 w-auto shrink-0 text-red" />
+                <span className="grid size-6 shrink-0 place-items-center rounded-full border border-red text-red">
+                  <Check size={14} strokeWidth={2.25} aria-hidden />
+                </span>
                 {p}
               </li>
             ))}
@@ -300,7 +305,7 @@ export default function AboutPage() {
         <div className="mt-2 flex items-end justify-between gap-4">
           <h2 className="text-[28px] leading-tight md:text-[34px]">Світи продуманих рішень</h2>
           <Link href="/catalog" className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap text-[13px] font-medium text-red">
-            Перейти в каталог <BrandHeart className="h-[1.15em] w-auto" />
+            Перейти в каталог <ArrowUpRight size={15} />
           </Link>
         </div>
         <Suspense fallback={<div className="mt-6 h-[300px]" aria-hidden />}>

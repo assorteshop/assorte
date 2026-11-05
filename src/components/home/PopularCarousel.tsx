@@ -2,7 +2,6 @@
 
 import { Children, useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
-import { HeartFrame } from "@/components/brand/HeartFrame";
 
 export function PopularCarousel({ children }: { children: React.ReactNode }) {
   const track = useRef<HTMLUListElement>(null);
@@ -46,7 +45,7 @@ export function PopularCarousel({ children }: { children: React.ReactNode }) {
   };
 
   const edge =
-    "group absolute top-[135px] z-10 hidden -translate-y-1/2 rounded-full bg-white/90 p-1 text-red shadow-[0_2px_8px_rgba(0,0,0,0.12)] md:block";
+    "absolute top-[135px] z-10 hidden size-10 -translate-y-1/2 place-items-center rounded-full bg-red text-white shadow-[0_2px_8px_rgba(0,0,0,0.18)] ring-2 ring-white transition-colors hover:bg-[#8f0011] md:grid";
 
   return (
     <section
@@ -64,11 +63,9 @@ export function PopularCarousel({ children }: { children: React.ReactNode }) {
             type="button"
             onClick={next}
             aria-label="Наступний товар"
-            className="group shrink-0 text-red"
+            className="grid size-11 shrink-0 place-items-center rounded-full bg-red text-white"
           >
-            <HeartFrame className="size-12">
-              <ArrowRight size={16} strokeWidth={2} />
-            </HeartFrame>
+            <ArrowRight size={18} />
           </button>
         )}
       </div>
@@ -86,16 +83,12 @@ export function PopularCarousel({ children }: { children: React.ReactNode }) {
         </ul>
         {canPrev && (
           <button type="button" aria-label="Попередній товар" onClick={() => step(-1)} className={`${edge} -left-5`}>
-            <HeartFrame className="size-11">
-              <ChevronLeft size={17} strokeWidth={2.2} />
-            </HeartFrame>
+            <ChevronLeft size={20} />
           </button>
         )}
         {canNext && (
           <button type="button" aria-label="Наступний товар" onClick={() => step(1)} className={`${edge} -right-5`}>
-            <HeartFrame className="size-11">
-              <ChevronRight size={17} strokeWidth={2.2} />
-            </HeartFrame>
+            <ChevronRight size={20} />
           </button>
         )}
       </div>

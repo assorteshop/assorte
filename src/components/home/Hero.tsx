@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Pause, Play } from "lucide-react";
+import { ArrowRight, Pause, Play } from "lucide-react";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Heart } from "@/components/brand/Heart";
-import { HeartFrame } from "@/components/brand/HeartFrame";
 import { heroSlides as slides } from "@/lib/hero-slides";
 
 const SLIDE_MS = 6500;
@@ -96,7 +95,7 @@ export function Hero() {
               className="group mt-8 inline-flex items-center gap-3 rounded-full bg-white px-7 py-4 text-[15px] font-medium text-graphite transition-colors hover:bg-red hover:text-white"
             >
               До каталогу
-              <Heart className="h-[1.2em] w-auto text-red transition-colors group-hover:text-white" />
+              <ArrowRight size={16} />
             </Link>
           </div>
 
@@ -109,20 +108,22 @@ export function Hero() {
                   onClick={() => show(i)}
                   aria-label={`Показати фото ${i + 1} з ${slides.length}`}
                   aria-current={i === active}
-                  className={`hidden p-1 transition-opacity sm:block ${i === active ? "opacity-100" : "opacity-45 hover:opacity-80"}`}
+                  className="hidden py-3 sm:block"
                 >
-                  <Heart className="h-4 w-auto" />
+                  <span
+                    className={`block h-[2px] rounded-full bg-white transition-all duration-500 ${
+                      i === active ? "w-8 opacity-100" : "w-4 opacity-50 hover:opacity-80"
+                    }`}
+                  />
                 </button>
               ))}
               <button
                 type="button"
                 onClick={() => setPaused((p) => !p)}
                 aria-label={paused ? "Продовжити показ фото" : "Зупинити показ фото"}
-                className="group ml-2"
+                className="ml-2 grid size-9 place-items-center rounded-full border border-white/60 transition-colors hover:bg-white hover:text-graphite"
               >
-                <HeartFrame className="size-10">
-                  {paused ? <Play size={13} strokeWidth={2.4} /> : <Pause size={13} strokeWidth={2.4} />}
-                </HeartFrame>
+                {paused ? <Play size={13} strokeWidth={2.4} /> : <Pause size={13} strokeWidth={2.4} />}
               </button>
             </div>
           )}

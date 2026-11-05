@@ -67,7 +67,7 @@ export function AddToCartButton({ product, variant }: Props) {
         <button
           type="button"
           onClick={add}
-          className="inline-flex items-center justify-center gap-2.5 rounded-[4px] bg-red px-5 py-4 text-[15px] font-medium text-white sm:gap-3 sm:px-7"
+          className="inline-flex items-center justify-center gap-2.5 rounded-full bg-red px-5 py-4 text-[15px] font-medium text-white sm:gap-3 sm:px-7"
         >
           {added ? <Check size={18} /> : <ShoppingCart size={18} strokeWidth={1.75} />}
           {added ? "Додано в кошик" : "Додати в кошик"}
@@ -88,7 +88,7 @@ export function AddToCartButton({ product, variant }: Props) {
       <button
         type="button"
         onClick={add}
-        className="inline-flex w-full items-center justify-center gap-3 rounded-[4px] bg-red px-7 py-4 text-[15px] font-medium text-white md:w-auto"
+        className="inline-flex w-full items-center justify-center gap-3 rounded-full bg-red px-7 py-4 text-[15px] font-medium text-white md:w-auto"
       >
         {added ? <Check size={18} /> : <ShoppingCart size={18} strokeWidth={1.75} />}
         {added ? "Додано в кошик" : "Додати в кошик"}

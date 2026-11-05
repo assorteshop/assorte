@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
-import { Heart } from "@/components/brand/Heart";
+import { ArrowRight, Menu, X } from "lucide-react";
 
 type Item = { href: string; label: string };
 
@@ -63,9 +62,9 @@ export function MobileMenu({ items }: { items: Item[] }) {
             <Link
               href="/checkout"
               onClick={close}
-              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-[4px] bg-red px-5 py-3 text-[14px] font-medium text-white"
+              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-red px-5 py-3 text-[14px] font-medium text-white"
             >
-              Оформити замовлення <Heart className="h-[1.15em] w-auto" />
+              Оформити замовлення <ArrowRight size={14} />
             </Link>
           </nav>
         </>

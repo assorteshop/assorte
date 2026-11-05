@@ -232,7 +232,7 @@ export function CheckoutForm({ onlineEnabled }: { onlineEnabled: boolean }) {
         <button
           type="submit"
           disabled={pending}
-          className="mt-2 w-full rounded-[4px] bg-red px-7 py-4 text-[15px] font-medium text-white disabled:opacity-60"
+          className="mt-2 w-full rounded-full bg-red px-7 py-4 text-[15px] font-medium text-white disabled:opacity-60"
         >
           {pending ? "Оформлюємо…" : "Підтвердити замовлення"}
         </button>
