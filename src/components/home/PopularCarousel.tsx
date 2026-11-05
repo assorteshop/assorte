@@ -45,19 +45,19 @@ export function PopularCarousel({ children }: { children: React.ReactNode }) {
   };
 
   const edge =
-    "absolute top-[135px] z-10 hidden size-10 -translate-y-1/2 place-items-center rounded-full bg-red text-white shadow-[0_2px_8px_rgba(0,0,0,0.18)] ring-2 ring-white transition-colors hover:bg-[#8f0011] md:grid";
+    "absolute top-[38%] z-10 hidden size-10 -translate-y-1/2 place-items-center rounded-full bg-red text-white shadow-[0_2px_8px_rgba(0,0,0,0.18)] ring-2 ring-white transition-colors hover:bg-[#8f0011] md:grid";
 
   return (
     <section
       aria-roledescription="carousel"
       aria-label="Популярні товари"
-      className="mx-auto max-w-[1280px] px-5 py-10 md:px-8"
+      className="mx-auto max-w-[1280px] px-5 py-12 md:px-8 md:py-16"
     >
       <p className="text-[11px] font-medium uppercase tracking-[0.3em] text-red">
         Вибір Assorte
       </p>
       <div className="mt-2 flex items-center justify-between gap-4">
-        <h2 className="text-[28px] md:text-[36px]">Популярні товари</h2>
+        <h2 className="font-heading text-[32px] font-bold leading-none tracking-[-0.01em] md:text-[48px]">Популярні товари</h2>
         {overflows && (
           <button
             type="button"
@@ -73,7 +73,7 @@ export function PopularCarousel({ children }: { children: React.ReactNode }) {
         <ul
           ref={track}
           onScroll={measure}
-          className="-mx-5 mt-6 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-px-5 px-5 pb-2 [scrollbar-width:none] md:mx-0 md:px-0 md:scroll-px-0 [&::-webkit-scrollbar]:hidden"
+          className="-mx-5 mt-8 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-px-5 px-5 pb-2 [scrollbar-width:none] md:mx-0 md:px-0 md:scroll-px-0 [&::-webkit-scrollbar]:hidden"
         >
           {Children.map(children, (child) => (
             <li className="w-[78%] shrink-0 snap-start sm:w-[calc((100%-1.25rem)/2)] lg:w-[calc((100%-2.5rem)/3)]">
