@@ -1,4 +1,5 @@
 import { Search } from "lucide-react";
+import { HeartFrame } from "@/components/brand/HeartFrame";
 
 export function SearchBox({
   defaultValue = "",
@@ -20,14 +21,16 @@ export function SearchBox({
         autoFocus={autoFocus}
         autoComplete="off"
         placeholder="Пошук товарів"
-        className="h-12 min-w-0 flex-1 rounded-l-[4px] border border-line bg-white px-4 text-[15px]"
+        className="h-12 min-w-0 flex-1 rounded-[4px] border border-line bg-white px-4 text-[15px]"
       />
       <button
         type="submit"
         aria-label="Шукати"
-        className="grid h-12 w-14 place-items-center rounded-r-[4px] bg-red text-white"
+        className="group ml-2 shrink-0 text-red"
       >
-        <Search size={20} />
+        <HeartFrame className="size-12">
+          <Search size={16} strokeWidth={2.2} />
+        </HeartFrame>
       </button>
     </form>
   );
