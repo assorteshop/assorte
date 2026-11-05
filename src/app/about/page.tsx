@@ -115,50 +115,40 @@ async function CategoryTiles() {
 export default function AboutPage() {
   return (
     <SiteShell>
-      {/* 1. Hero */}
-      <section className="overflow-hidden bg-[#f3ece4]">
-        <div className="mx-auto grid max-w-[1280px] items-center gap-6 px-5 md:grid-cols-[1.1fr_0.9fr_0.95fr] md:gap-4 md:px-8">
-          <div className="pt-10 md:py-16">
+      {/* 1. Hero: the scene with Alex as the background, the idea of the name over it */}
+      <section className="relative isolate overflow-hidden bg-[#f6f1ea] md:flex md:min-h-[720px] md:items-center">
+        {/* Phones: the photo on top, fading into the page. Computers: the photo behind the text. */}
+        <div className="relative h-[400px] sm:h-[480px] md:absolute md:inset-0 md:-z-10 md:h-auto">
+          <Image
+            src="/images/about/about-hero.webp"
+            alt="Алекс за дерев’яним столом у затишній кімнаті з полицями, чашками й подарунками"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-[74%_center] md:object-[70%_center]"
+          />
+          <div
+            aria-hidden
+            className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(246,241,234,0)_60%,#f6f1ea_100%)] md:bg-[linear-gradient(to_right,rgba(246,241,234,0.96)_0%,rgba(246,241,234,0.88)_34%,rgba(246,241,234,0)_60%)]"
+          />
+        </div>
+        <div className="mx-auto w-full max-w-[1280px] px-5 pb-12 pt-2 md:px-8 md:py-16">
+          <div className="max-w-[520px]">
             <p className={eyebrow}>Про нас</p>
-            <h1 className="mt-4 font-heading text-[56px] font-medium leading-none tracking-[0.01em] sm:text-[72px] lg:text-[88px]">
+            <h1 className="mt-4 font-heading text-[56px] font-medium leading-none tracking-[0.01em] sm:text-[72px] lg:text-[84px]">
               AS<span className="text-red">SORTE</span>
             </h1>
             <p className="mt-3 text-[18px] md:text-[20px]">The art of thoughtful selection</p>
             <span className={rule} />
-            <p className="text-[19px] leading-snug md:text-[22px]">
-              Продумані деталі
-              <br />
-              для кращих моментів.
-            </p>
-            <p className="mt-6 -rotate-6 font-script text-[28px] leading-[1.15] text-graphite/80">
-              Більше, ніж просто речі <BrandHeart className="inline-block h-[0.9em] w-auto align-[-0.1em] text-red" />
-            </p>
-          </div>
-
-          <div className="relative mx-auto aspect-[507/720] w-full max-w-[380px] md:max-w-none">
-            <Image
-              src="/images/about/alex-hero.webp"
-              alt="Алекс, обличчя ASSORTE, усміхається з полуницею в руці"
-              fill
-              priority
-              sizes="(min-width: 768px) 30vw, 80vw"
-              className="object-cover object-top"
-            />
-          </div>
-
-          <div className="pb-10 md:py-16">
-            <p className={eyebrow}>Ідея назви</p>
-            <h2 className="mt-3 font-heading text-[30px] font-bold leading-[1.05] md:text-[36px]">
+            <h2 className="font-script text-[36px] leading-[1.1] md:text-[42px]">
               Мистецтво підбору
               <br />
               і трохи долі.
             </h2>
-            <span className={rule} />
-            <div className="max-w-[380px] space-y-3 text-[15px] leading-relaxed text-graphite/85">
-              <p>У назві ASSORTE зустрілися дві давні мови.</p>
+            <div className="mt-4 space-y-3 text-[15px] leading-relaxed text-graphite/90">
               <p>
-                Французьке <i lang="fr">assortir</i> означає підбирати речі так, щоб вони пасували одна одній: колір до
-                кольору, деталь до деталі.
+                У назві ASSORTE зустрілися дві давні мови. Французьке <i lang="fr">assortir</i> означає підбирати речі
+                так, щоб вони пасували одна одній: колір до кольору, деталь до деталі.
               </p>
               <p>
                 А в самому серці слова живе латинське <i lang="la">sors</i>: жереб і доля. Від нього італійське{" "}
@@ -168,13 +158,9 @@ export default function AboutPage() {
                 Тож ASSORTE — це речі, підібрані з любов’ю. І трохи долі в тому, що вони знайшли саме вас.
               </p>
             </div>
-            <div className="mt-6 inline-flex items-center gap-3 rounded-[8px] bg-red px-5 py-3.5 text-white">
-              <Check size={22} strokeWidth={2} aria-hidden />
-              <div>
-                <p className="text-[15px] font-medium leading-tight">Обрано ASSORTE</p>
-                <p className="mt-0.5 text-[12px] opacity-90">Не все проходить відбір.</p>
-              </div>
-            </div>
+            <p className="mt-6 font-script text-[26px] leading-none text-graphite/85">
+              Більше, ніж просто речі <BrandHeart className="inline-block h-[0.9em] w-auto align-[-0.1em] text-red" />
+            </p>
           </div>
         </div>
       </section>
