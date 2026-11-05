@@ -144,17 +144,27 @@ export default function AboutPage() {
           </div>
 
           <div className="pb-10 md:py-16">
-            <h2 className="font-heading text-[36px] font-bold leading-none tracking-[0.02em] md:text-[44px]">ALEX</h2>
-            <p className="mt-3 text-[18px] leading-snug md:text-[20px]">
-              Обличчя
+            <p className={eyebrow}>Ідея назви</p>
+            <h2 className="mt-3 font-heading text-[30px] font-bold leading-[1.05] md:text-[36px]">
+              Мистецтво підбору
               <br />
-              ASSORTE.
-            </p>
+              і трохи долі.
+            </h2>
             <span className={rule} />
-            <p className="max-w-[360px] text-[15px] leading-relaxed text-graphite/85">
-              Алекс — обличчя нашого бренду. Її усмішка про те, якими ми хочемо бачити ваші моменти з ASSORTE: теплими,
-              легкими й трохи святковими.
-            </p>
+            <div className="max-w-[380px] space-y-3 text-[15px] leading-relaxed text-graphite/85">
+              <p>У назві ASSORTE зустрілися дві давні мови.</p>
+              <p>
+                Французьке <i lang="fr">assortir</i> означає підбирати речі так, щоб вони пасували одна одній: колір до
+                кольору, деталь до деталі.
+              </p>
+              <p>
+                А в самому серці слова живе латинське <i lang="la">sors</i>: жереб і доля. Від нього італійське{" "}
+                <i lang="it">sorte</i>. Коли італійці кидають жереб, вони кажуть <i lang="it">tirare a sorte</i>.
+              </p>
+              <p className="text-graphite">
+                Тож ASSORTE — це речі, підібрані з любов’ю. І трохи долі в тому, що вони знайшли саме вас.
+              </p>
+            </div>
             <div className="mt-6 inline-flex items-center gap-3 rounded-[8px] bg-red px-5 py-3.5 text-white">
               <BrandHeart className="h-7 w-auto shrink-0" />
               <div>
