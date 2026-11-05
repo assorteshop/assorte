@@ -3,8 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import {
-  ArrowUpRight,
-  Check,
   Gem,
   Gift,
   Heart,
@@ -25,7 +23,7 @@ import { Heart as BrandHeart } from "@/components/brand/Heart";
 export const metadata: Metadata = {
   title: "Про нас — ASSORTE",
   description:
-    "ASSORTE — добірка корисних, естетичних і незвичайних речей. Як ми обираємо товари і хто такий Сорті, головний інспектор якості.",
+    "ASSORTE — добірка корисних, естетичних і незвичайних речей. Як ми обираємо товари і хто обличчя нашого бренду.",
   alternates: { canonical: "/about" },
 };
 
@@ -130,14 +128,14 @@ export default function AboutPage() {
               для кращих моментів.
             </p>
             <p className="mt-6 -rotate-6 font-script text-[28px] leading-[1.15] text-graphite/80">
-              Більше, ніж просто речі <span aria-hidden>♡</span>
+              Більше, ніж просто речі <BrandHeart className="inline-block h-[0.9em] w-auto align-[-0.1em] text-red" />
             </p>
           </div>
 
           <div className="relative mx-auto aspect-[507/720] w-full max-w-[380px] md:max-w-none">
             <Image
-              src="/images/about/sorti-hero.jpg"
-              alt="Сорті — сірий британський кіт з мідними очима та червоним шарфом"
+              src="/images/about/alex-hero.webp"
+              alt="Алекс, обличчя ASSORTE, усміхається з полуницею в руці"
               fill
               priority
               sizes="(min-width: 768px) 30vw, 80vw"
@@ -146,20 +144,21 @@ export default function AboutPage() {
           </div>
 
           <div className="pb-10 md:py-16">
-            <h2 className="font-heading text-[36px] font-medium leading-none tracking-[0.02em] md:text-[44px]">SORTI</h2>
+            <h2 className="font-heading text-[36px] font-bold leading-none tracking-[0.02em] md:text-[44px]">ALEX</h2>
             <p className="mt-3 text-[18px] leading-snug md:text-[20px]">
-              The one who makes
+              Обличчя
               <br />
-              the selection.
+              ASSORTE.
             </p>
             <span className={rule} />
             <p className="max-w-[360px] text-[15px] leading-relaxed text-graphite/85">
-              Сорті уважно перевіряє кожен товар, щоб у ASSORTE були тільки справді якісні, корисні та особливі речі.
+              Алекс — обличчя нашого бренду. Її усмішка про те, якими ми хочемо бачити ваші моменти з ASSORTE: теплими,
+              легкими й трохи святковими.
             </p>
             <div className="mt-6 inline-flex items-center gap-3 rounded-[8px] bg-red px-5 py-3.5 text-white">
-              <Check size={22} strokeWidth={2} aria-hidden />
+              <BrandHeart className="h-7 w-auto shrink-0" />
               <div>
-                <p className="text-[15px] font-medium leading-tight">Схвалено Сорті</p>
+                <p className="text-[15px] font-medium leading-tight">Обрано ASSORTE</p>
                 <p className="mt-0.5 text-[12px] opacity-90">Не все проходить відбір.</p>
               </div>
             </div>
@@ -172,11 +171,11 @@ export default function AboutPage() {
         <div className="mx-auto grid max-w-[1280px] md:grid-cols-[0.8fr_1fr_1fr]">
           <div className="relative aspect-[384/368] md:aspect-auto">
             <Image
-              src="/images/about/sorti-approved.jpg"
-              alt="Сорті схвалює товар у фірмовій коробці ASSORTE"
+              src="/images/about/alex-mission.webp"
+              alt="Алекс у рожевій сукні з букетом польових квітів"
               fill
               sizes="(min-width: 768px) 28vw, 100vw"
-              className="object-cover"
+              className="object-cover object-top"
             />
           </div>
           <div className="px-5 py-10 md:px-10 md:py-14">
@@ -236,8 +235,8 @@ export default function AboutPage() {
         <div className="mx-auto grid max-w-[1280px] items-center md:grid-cols-[0.75fr_1.1fr_1fr]">
           <div className="relative aspect-[384/344] md:h-full md:aspect-auto">
             <Image
-              src="/images/about/sorti-powerbank.jpg"
-              alt="Сорті уважно оглядає повербанк"
+              src="/images/about/alex-principles.webp"
+              alt="Алекс в оливковому жакеті"
               fill
               sizes="(min-width: 768px) 25vw, 100vw"
               className="object-cover"
@@ -246,21 +245,19 @@ export default function AboutPage() {
           <div className="px-5 py-10 md:px-10 md:py-14">
             <p className={eyebrow}>Наші принципи</p>
             <h2 className="mt-3 text-[30px] leading-tight md:text-[36px]">
-              Сорті перевірив.
+              Ми перевірили.
               <br />
               ASSORTE обрав.
             </h2>
             <p className="mt-5 text-[15px] leading-relaxed text-graphite/80">
-              Сорті: наш головний інспектор якості. Він символізує ретельний відбір, уважність до деталей і нашу
-              відповідальність перед вами.
+              Рукописне серце ASSORTE — наш знак ретельного відбору, уважності до деталей і відповідальності перед вами.
+              Не все проходить цей відбір.
             </p>
           </div>
           <ul className="mx-5 mb-10 space-y-3.5 rounded-[10px] bg-white px-6 py-6 md:m-8">
             {principles.map((p) => (
               <li key={p} className="flex items-center gap-3 text-[14px]">
-                <span className="grid size-6 shrink-0 place-items-center rounded-full border border-red text-red">
-                  <Check size={14} strokeWidth={2.25} aria-hidden />
-                </span>
+                <BrandHeart className="h-5 w-auto shrink-0 text-red" />
                 {p}
               </li>
             ))}
@@ -293,7 +290,7 @@ export default function AboutPage() {
         <div className="mt-2 flex items-end justify-between gap-4">
           <h2 className="text-[28px] leading-tight md:text-[34px]">Світи продуманих рішень</h2>
           <Link href="/catalog" className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap text-[13px] font-medium text-red">
-            Перейти в каталог <ArrowUpRight size={15} />
+            Перейти в каталог <BrandHeart className="h-[1.15em] w-auto" />
           </Link>
         </div>
         <Suspense fallback={<div className="mt-6 h-[300px]" aria-hidden />}>
