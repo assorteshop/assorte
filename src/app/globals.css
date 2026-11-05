@@ -24,12 +24,25 @@ body {
   font-family: var(--font-inter), system-ui, sans-serif;
 }
 
-h1, h2, h3 {
-  font-family: var(--font-manrope), system-ui, sans-serif;
-  font-weight: 500;
+/* In the base layer so a utility class (for example font-bold) can still change a heading. */
+@layer base {
+  h1, h2, h3 {
+    font-family: var(--font-manrope), system-ui, sans-serif;
+    font-weight: 500;
+  }
 }
 
 :focus-visible {
   outline: 2px solid var(--red);
   outline-offset: 2px;
+}
+
+/* Slow zoom of the photo on the first screen of the home page. */
+@keyframes kenburns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.07);
+  }
 }

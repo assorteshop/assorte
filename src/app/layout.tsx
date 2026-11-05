@@ -14,7 +14,7 @@ const inter = Inter({
 const manrope = Manrope({
   variable: "--font-manrope",
   subsets: ["latin", "cyrillic"],
-  weight: ["500"],
+  weight: ["500", "700"],
 });
 
 const script = Marck_Script({

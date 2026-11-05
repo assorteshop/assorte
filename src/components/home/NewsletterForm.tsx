@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { ArrowRight } from "lucide-react";
+import { HeartFrame } from "@/components/brand/HeartFrame";
 import { subscribe, type SubscribeState } from "@/app/actions/subscribe";
 
 const initial: SubscribeState = { status: "idle", message: "" };
@@ -20,15 +21,17 @@ export function NewsletterForm() {
           type="email"
           required
           placeholder="Ваш email"
-          className="h-12 min-w-0 flex-1 rounded-l-[4px] border border-line bg-white px-4 text-[13px]"
+          className="h-12 min-w-0 flex-1 rounded-[4px] border border-line bg-white px-4 text-[13px]"
         />
         <button
           type="submit"
           disabled={pending}
           aria-label="Підписатися"
-          className="grid h-12 w-12 place-items-center rounded-r-[4px] bg-red text-white disabled:opacity-60"
+          className="group ml-2 shrink-0 text-red disabled:opacity-60"
         >
-          <ArrowRight size={18} />
+          <HeartFrame className="size-12">
+            <ArrowRight size={16} strokeWidth={2} />
+          </HeartFrame>
         </button>
       </div>
       <p role="status" className={`mt-2 text-[12px] ${state.status === "error" ? "text-red" : "text-muted"}`}>

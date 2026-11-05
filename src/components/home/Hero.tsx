@@ -1,57 +1,132 @@
-import Image from "next/image";
+"use client";
+
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { Pause, Play } from "lucide-react";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import { Heart } from "@/components/brand/Heart";
+import { HeartFrame } from "@/components/brand/HeartFrame";
+import { heroSlides as slides } from "@/lib/hero-slides";
 
+const SLIDE_MS = 6500;
+
+const motionQuery = "(prefers-reduced-motion: reduce)";
+const subscribeMotion = (onChange: () => void) => {
+  const mq = window.matchMedia(motionQuery);
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+};
+const prefersStill = () => window.matchMedia(motionQuery).matches;
+
+// Full-screen photos of Alex that slowly change, with the brand line over them.
+// People who turned animation off in their system see the first photo only, without movement.
 export function Hero() {
+  const still = useSyncExternalStore(subscribeMotion, prefersStill, () => false);
+  const [active, setActive] = useState(0);
+  // Photos are added to the page one step ahead of the one on screen, so the first load stays light.
+  const [reached, setReached] = useState(1);
+  const [paused, setPaused] = useState(false);
+
+  const show = (i: number) => {
+    setActive(i);
+    setReached((r) => Math.max(r, i + 1));
+  };
+
+  useEffect(() => {
+    if (still || paused) return;
+    const t = setInterval(() => {
+      setActive((a) => {
+        const next = (a + 1) % slides.length;
+        setReached((r) => Math.max(r, next + 1));
+        return next;
+      });
+    }, SLIDE_MS);
+    return () => clearInterval(t);
+  }, [still, paused]);
+
   return (
-    <section className="relative overflow-hidden bg-ivory md:min-h-[640px]">
-      <div className="relative aspect-[5/4] md:absolute md:inset-y-0 md:right-0 md:aspect-auto md:w-[62%]">
-        <Image
-          src="/images/hero.jpg"
-          alt="Дівчина з теплим шарфом тримає термокухоль"
-          fill
-          priority
-          sizes="(min-width: 768px) 62vw, 100vw"
-          className="object-cover object-[65%_center]"
-        />
-        <div
-          aria-hidden
-          className="absolute inset-0 bg-gradient-to-t from-ivory via-transparent to-transparent md:bg-gradient-to-r md:from-ivory md:via-ivory/10 md:to-transparent"
-        />
-      </div>
+    <section
+      aria-roledescription="carousel"
+      aria-label="ASSORTE: більше, ніж просто речі"
+      className="relative h-[100svh] min-h-[560px] overflow-hidden bg-graphite text-white"
+    >
+      {slides.map((s, i) => {
+        if (i > reached && i !== active) return null;
+        const on = i === active;
+        return (
+          <div
+            key={s.id}
+            aria-hidden={!on}
+            className={`absolute inset-0 transition-opacity duration-[1400ms] ease-out ${on ? "opacity-100" : "opacity-0"}`}
+            style={{ backgroundColor: s.bg }}
+          >
+            <picture>
+              {s.desktop && <source media="(min-width: 768px)" srcSet={s.desktop} />}
+              <img
+                src={s.mobile}
+                alt={on ? s.alt : ""}
+                fetchPriority={i === 0 ? "high" : "auto"}
+                decoding="async"
+                className={`absolute inset-0 h-full w-full object-cover object-[50%_22%] ${
+                  s.desktop ? "md:object-center" : "md:inset-auto md:right-[6%] md:top-0 md:w-auto md:object-contain md:[mask-image:linear-gradient(to_right,transparent,#000_18%,#000_82%,transparent)]"
+                } ${on && !still ? "animate-[kenburns_9s_ease-out_forwards]" : ""}`}
+              />
+            </picture>
+          </div>
+        );
+      })}
 
-      <div className="relative mx-auto flex max-w-[1280px] flex-col px-5 pb-12 pt-4 md:min-h-[640px] md:justify-center md:px-8 md:py-16">
-        <p className="mb-5 text-[11px] font-medium uppercase tracking-[0.3em]">
-          Незвичайні речі для твого стилю
-        </p>
-        <h1 className="max-w-[560px] text-[44px] leading-[1.05] md:text-[64px]">
-          Продумані
-          <br />
-          деталі для
-          <br />
-          <span className="text-red">кращих моментів</span>
-        </h1>
-        <p className="mt-6 max-w-[400px] text-[15px] leading-relaxed text-graphite/85">
-          Аксесуари, гаджети та стильні знахідки, які поєднують користь, естетику
-          і турботу про щоденний комфорт.
-        </p>
-        <Link
-          href="/catalog"
-          className="mt-8 inline-flex w-fit items-center gap-3 rounded-[4px] bg-red px-7 py-4 text-[15px] font-medium text-white"
-        >
-          Каталог <ArrowRight size={16} />
-        </Link>
+      {/* Shade so the white words and the header stay readable on any photo. */}
+      <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+      <div aria-hidden className="absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-black/35 to-transparent" />
 
-        <p
-          aria-label="Більше, ніж просто речі"
-          className="absolute right-12 top-14 hidden -rotate-[12deg] text-right font-script text-[28px] leading-[1.15] text-graphite/80 md:block"
-        >
-          Більше,
-          <br />
-          ніж просто
-          <br />
-          речі <span aria-hidden>♡</span>
-        </p>
+      <div className="absolute inset-x-0 bottom-0">
+        <div className="relative mx-auto max-w-[1280px] px-5 pb-10 md:px-8 md:pb-16">
+          <div>
+            <p className="text-[11px] font-medium uppercase tracking-[0.35em] text-white/85">
+              Продумані деталі для кращих моментів
+            </p>
+            <h1 className="mt-4 font-heading text-[42px] font-bold leading-[0.95] tracking-[-0.015em] sm:text-[68px] lg:text-[92px]">
+              Більше, ніж
+              <br />
+              просто речі{" "}
+              <Heart className="inline-block h-[0.78em] w-auto -translate-y-[0.06em] align-baseline" />
+            </h1>
+            <Link
+              href="/catalog"
+              className="group mt-8 inline-flex items-center gap-3 rounded-full bg-white px-7 py-4 text-[15px] font-medium text-graphite transition-colors hover:bg-red hover:text-white"
+            >
+              До каталогу
+              <Heart className="h-[1.2em] w-auto text-red transition-colors group-hover:text-white" />
+            </Link>
+          </div>
+
+          {!still && (
+            <div className="absolute bottom-10 right-5 flex items-center gap-2 md:bottom-16 md:right-8">
+              {slides.map((s, i) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => show(i)}
+                  aria-label={`Показати фото ${i + 1} з ${slides.length}`}
+                  aria-current={i === active}
+                  className={`hidden p-1 transition-opacity sm:block ${i === active ? "opacity-100" : "opacity-45 hover:opacity-80"}`}
+                >
+                  <Heart className="h-4 w-auto" />
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => setPaused((p) => !p)}
+                aria-label={paused ? "Продовжити показ фото" : "Зупинити показ фото"}
+                className="group ml-2"
+              >
+                <HeartFrame className="size-10">
+                  {paused ? <Play size={13} strokeWidth={2.4} /> : <Pause size={13} strokeWidth={2.4} />}
+                </HeartFrame>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );

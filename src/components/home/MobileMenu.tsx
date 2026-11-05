@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import { Heart } from "@/components/brand/Heart";
 
 type Item = { href: string; label: string };
 
@@ -48,7 +49,7 @@ export function MobileMenu({ items }: { items: Item[] }) {
           <nav
             id="mobile-menu"
             aria-label="Мобільна навігація"
-            className="absolute inset-x-0 top-16 border-t border-line bg-white px-5 pb-6 pt-2"
+            className="absolute inset-x-0 top-16 border-t border-line bg-white px-5 pb-6 pt-2 text-graphite"
           >
             <ul>
               {items.map((item) => (
@@ -64,7 +65,7 @@ export function MobileMenu({ items }: { items: Item[] }) {
               onClick={close}
               className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-[4px] bg-red px-5 py-3 text-[14px] font-medium text-white"
             >
-              Оформити замовлення <ArrowRight size={14} />
+              Оформити замовлення <Heart className="h-[1.15em] w-auto" />
             </Link>
           </nav>
         </>

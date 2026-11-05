@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Check, ShoppingCart } from "lucide-react";
+import { HeartFrame } from "@/components/brand/HeartFrame";
 import { addToCart, useCart } from "@/lib/cart";
 import { cartSource, track } from "@/lib/analytics";
 
@@ -50,9 +51,11 @@ export function AddToCartButton({ product, variant }: Props) {
         type="button"
         onClick={add}
         aria-label={added ? "Додано в кошик" : `Додати в кошик: ${product.name}`}
-        className="grid size-11 place-items-center rounded-full bg-red text-white"
+        className="group block text-red"
       >
-        {added ? <Check size={18} strokeWidth={2} /> : <ShoppingCart size={18} strokeWidth={1.75} />}
+        <HeartFrame className="size-12">
+          {added ? <Check size={17} strokeWidth={2.2} /> : <ShoppingCart size={17} strokeWidth={1.9} />}
+        </HeartFrame>
       </button>
     );
   }
