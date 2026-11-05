@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { ArrowRight, Search } from "lucide-react";
 import { CartLink } from "@/components/cart/CartLink";
 import { MobileMenu } from "./MobileMenu";
 import { HeaderFrame } from "./HeaderFrame";
 import { Wordmark } from "./Wordmark";
-import { Heart } from "@/components/brand/Heart";
 
 const nav = [
   { href: "/catalog", label: "Каталог" },
@@ -35,9 +34,9 @@ export function Header({ overlay = false }: { overlay?: boolean }) {
           <CartLink />
           <Link
             href="/checkout"
-            className="hidden items-center gap-2 rounded-[4px] bg-red px-5 py-2.5 text-[13px] font-medium text-white md:inline-flex"
+            className="hidden items-center gap-2 rounded-full bg-red px-5 py-2.5 text-[13px] font-medium text-white md:inline-flex"
           >
-            Оформити замовлення <Heart className="h-[1.15em] w-auto" />
+            Оформити замовлення <ArrowRight size={14} />
           </Link>
         </div>
       </div>

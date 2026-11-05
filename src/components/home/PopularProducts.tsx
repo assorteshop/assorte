@@ -1,5 +1,6 @@
 import { getFeaturedProducts } from "@/lib/products";
 import { PopularCarousel } from "./PopularCarousel";
+import { PicksTile } from "./PicksTile";
 import { ProductCard } from "./ProductCard";
 
 export async function PopularProducts() {
@@ -16,6 +17,7 @@ export async function PopularProducts() {
 
   return (
     <PopularCarousel>
+      <PicksTile />
       {products.map((p) => (
         <ProductCard key={p.id} product={p} />
       ))}

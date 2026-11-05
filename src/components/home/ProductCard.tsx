@@ -6,34 +6,36 @@ import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { formatUah } from "@/lib/format";
 import type { ProductCardData } from "@/lib/products";
 
+// Editorial card: the photo sits on a warm tile (its white background melts into the tile),
+// no white box around the card, bold price in the heading font, the heart cart button.
 export function ProductCard({ product }: { product: ProductCardData }) {
   const href = `/products/${product.slug}`;
   return (
-    <article className="relative flex h-full flex-col overflow-hidden rounded-[6px] bg-white">
-      <div className={`relative aspect-[4/3] ${product.image_url ? "bg-white" : "bg-[#ece8e2]"}`}>
+    <article className="group/card relative flex h-full flex-col">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-[20px] bg-[#f0eae3]">
         {product.image_url && (
           <Image
             src={product.image_url}
             alt={product.name}
             fill
-            sizes="(min-width: 768px) 33vw, 100vw"
-            className="object-contain"
+            sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 78vw"
+            className="object-contain p-5 mix-blend-multiply transition-transform duration-500 group-hover/card:scale-[1.04]"
           />
         )}
         {product.badge && (
-          <span className="absolute left-3 top-3 rounded-full bg-red px-3 py-1 text-[11px] font-medium text-white">
+          <span className="absolute left-4 top-4 rounded-full bg-red px-3.5 py-1.5 text-[11px] font-medium text-white">
             {product.badge}
           </span>
         )}
       </div>
-      <div className="flex flex-1 flex-col p-4">
-        <h3 className="line-clamp-2 text-[15px]">
+      <div className="flex flex-1 flex-col px-1 pt-4">
+        <h3 className="line-clamp-2 text-[16px] leading-snug">
           <Link href={href} className="hover:text-red after:absolute after:inset-0 after:content-['']">
             {product.name}
             {product.variantCount === 1 && product.variant_label ? ` — ${product.variant_label}` : ""}
           </Link>
         </h3>
-        <p className="mt-1 line-clamp-2 text-[12px] text-muted">{product.tagline}</p>
+        <p className="mt-1 line-clamp-1 text-[13px] text-muted">{product.tagline}</p>
         {product.variantCount > 1 && (
           <p className="mt-1 text-[12px] text-muted">Варіантів: {product.variantCount}</p>
         )}
@@ -48,9 +50,9 @@ export function ProductCard({ product }: { product: ProductCardData }) {
             ))}
           </ul>
         )}
-        <div className="mt-auto flex items-end justify-between pt-2">
-          <p className="text-[17px] font-medium">
-            {product.priceFrom && <span className="mr-1 text-[13px] font-normal text-muted">від</span>}
+        <div className="mt-auto flex items-end justify-between pt-3">
+          <p className="font-heading text-[20px] font-bold leading-none">
+            {product.priceFrom && <span className="mr-1 font-sans text-[13px] font-normal text-muted">від</span>}
             {formatUah(product.price_uah)}
           </p>
           <div className="relative z-10">

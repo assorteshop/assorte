@@ -1,9 +1,8 @@
 import Link from "next/link";
-import { Gem, Gift, Leaf, Star } from "lucide-react";
+import { ArrowRight, Gem, Gift, Leaf, Star } from "lucide-react";
 import { Wordmark } from "./Wordmark";
 import { NewsletterForm } from "./NewsletterForm";
 import { getSettings } from "@/lib/settings";
-import { Heart } from "@/components/brand/Heart";
 
 const points = [
   { icon: Gem, text: "Ретельний відбір товарів" },
@@ -40,7 +39,7 @@ export async function Footer() {
             моменти особливими.
           </p>
           <Link href="/about" className="mt-4 inline-flex items-center gap-2 text-[13px] font-medium text-red">
-            Більше про нас <Heart className="h-[1.15em] w-auto" />
+            Більше про нас <ArrowRight size={14} />
           </Link>
         </div>
         <ul className="space-y-4">
