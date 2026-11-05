@@ -23,7 +23,7 @@ import { Heart as BrandHeart } from "@/components/brand/Heart";
 export const metadata: Metadata = {
   title: "Про нас — ASSORTE",
   description:
-    "ASSORTE — добірка корисних, естетичних і незвичайних речей. Як ми обираємо товари і хто обличчя нашого бренду.",
+    "ASSORTE — добірка корисних, естетичних і незвичайних речей. Як ми обираємо товари і що означає наша назва.",
   alternates: { canonical: "/about" },
 };
 
