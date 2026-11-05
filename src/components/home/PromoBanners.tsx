@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { getBanners } from "@/lib/articles";
+import { Heart } from "@/components/brand/Heart";
 
 export async function PromoBanners() {
   const banners = await getBanners();
@@ -39,7 +39,7 @@ export async function PromoBanners() {
                 b.tone === "red" ? "bg-white text-red" : "bg-red text-white"
               }`}
             >
-              {b.button_label} <ArrowRight size={14} />
+              {b.button_label} <Heart className="h-[1.15em] w-auto" />
             </Link>
             )}
           </div>

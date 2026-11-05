@@ -10,7 +10,7 @@ import { TrustBar } from "@/components/home/TrustBar";
 export default function Home() {
   return (
     <>
-      <Header />
+      <Header overlay />
       <main>
         <Hero />
         <TrustBar />

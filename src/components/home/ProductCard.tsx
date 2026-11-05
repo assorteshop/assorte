@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, ShoppingCart } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
+import { HeartFrame } from "@/components/brand/HeartFrame";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { formatUah } from "@/lib/format";
 import type { ProductCardData } from "@/lib/products";
@@ -24,13 +25,6 @@ export function ProductCard({ product }: { product: ProductCardData }) {
             {product.badge}
           </span>
         )}
-        <button
-          type="button"
-          aria-label="Додати до обраного"
-          className="absolute right-3 top-3 z-10 p-1 text-graphite"
-        >
-          <Heart size={20} strokeWidth={1.5} />
-        </button>
       </div>
       <div className="flex flex-1 flex-col p-4">
         <h3 className="line-clamp-2 text-[15px]">
@@ -61,12 +55,10 @@ export function ProductCard({ product }: { product: ProductCardData }) {
           </p>
           <div className="relative z-10">
             {product.variantCount > 1 ? (
-              <Link
-                href={href}
-                aria-label={`Обрати варіант: ${product.name}`}
-                className="grid size-11 place-items-center rounded-full bg-red text-white"
-              >
-                <ShoppingCart size={18} strokeWidth={1.75} />
+              <Link href={href} aria-label={`Обрати варіант: ${product.name}`} className="group block text-red">
+                <HeartFrame className="size-12">
+                  <ShoppingCart size={17} strokeWidth={1.9} />
+                </HeartFrame>
               </Link>
             ) : (
               <AddToCartButton product={product} variant="icon" />

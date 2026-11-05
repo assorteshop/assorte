@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { ArrowRight, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { CartLink } from "@/components/cart/CartLink";
 import { MobileMenu } from "./MobileMenu";
+import { HeaderFrame } from "./HeaderFrame";
 import { Wordmark } from "./Wordmark";
+import { Heart } from "@/components/brand/Heart";
 
 const nav = [
   { href: "/catalog", label: "Каталог" },
@@ -12,9 +14,10 @@ const nav = [
   { href: "/about", label: "Про нас" },
 ];
 
-export function Header() {
+// overlay: on the home page the header lies over the full-screen photo.
+export function Header({ overlay = false }: { overlay?: boolean }) {
   return (
-    <header className="sticky top-0 z-30 bg-white">
+    <HeaderFrame overlay={overlay}>
       <div className="mx-auto flex h-16 max-w-[1280px] items-center gap-6 px-5 md:h-[54px] md:px-8">
         <Wordmark className="text-xl md:text-[22px]" />
         <nav aria-label="Головна навігація" className="ml-6 hidden gap-8 text-[13px] md:flex">
@@ -34,10 +37,10 @@ export function Header() {
             href="/checkout"
             className="hidden items-center gap-2 rounded-[4px] bg-red px-5 py-2.5 text-[13px] font-medium text-white md:inline-flex"
           >
-            Оформити замовлення <ArrowRight size={14} />
+            Оформити замовлення <Heart className="h-[1.15em] w-auto" />
           </Link>
         </div>
       </div>
-    </header>
+    </HeaderFrame>
   );
 }

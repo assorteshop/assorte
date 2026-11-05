@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Minus, Plus, X } from "lucide-react";
+import { Minus, Plus, X } from "lucide-react";
 import { removeFromCart, setQty, useCart } from "@/lib/cart";
 import { formatUah } from "@/lib/format";
+import { Heart } from "@/components/brand/Heart";
 
 export function CartView() {
   const { items, total, count } = useCart();
@@ -17,7 +18,7 @@ export function CartView() {
           href="/catalog"
           className="mt-6 inline-flex items-center gap-3 rounded-[4px] bg-red px-7 py-4 text-[15px] font-medium text-white"
         >
-          До каталогу <ArrowRight size={16} />
+          До каталогу <Heart className="h-[1.15em] w-auto" />
         </Link>
       </div>
     );
@@ -103,7 +104,7 @@ export function CartView() {
           href="/checkout"
           className="mt-6 flex items-center justify-center gap-3 rounded-[4px] bg-red px-7 py-4 text-[15px] font-medium text-white"
         >
-          Оформити замовлення <ArrowRight size={16} />
+          Оформити замовлення <Heart className="h-[1.15em] w-auto" />
         </Link>
         <Link href="/catalog" className="mt-4 block text-center text-[13px] hover:text-red">
           Продовжити покупки

@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import {
-  ArrowRight,
   ArrowUpRight,
   Check,
   Gem,
@@ -21,6 +20,7 @@ import {
 import { SiteShell } from "@/components/SiteShell";
 import { categories, type CategorySlug } from "@/lib/categories";
 import { getProducts } from "@/lib/products";
+import { Heart as BrandHeart } from "@/components/brand/Heart";
 
 export const metadata: Metadata = {
   title: "Про нас — ASSORTE",
@@ -101,8 +101,8 @@ async function CategoryTiles() {
               <p className="text-[12px] font-semibold uppercase tracking-[0.04em]">{category.eyebrow}</p>
               <p className="mt-0.5 truncate text-[12px] text-muted">{categoryTagline[category.slug]}</p>
             </div>
-            <span className="grid size-8 shrink-0 place-items-center rounded-full border border-line text-graphite group-hover:border-red group-hover:text-red">
-              <ArrowRight size={15} />
+            <span className="grid size-8 shrink-0 place-items-center text-graphite/60 transition-colors group-hover:text-red">
+              <BrandHeart className="h-6 w-auto" />
             </span>
           </div>
         </Link>
@@ -217,7 +217,7 @@ export default function AboutPage() {
             href="/blog"
             className="mt-6 inline-flex items-center gap-2 rounded-[4px] bg-red px-6 py-3.5 text-[14px] font-medium text-white"
           >
-            Дізнатися більше <ArrowRight size={15} />
+            Дізнатися більше <BrandHeart className="h-[1.15em] w-auto" />
           </Link>
         </div>
         <ul className="grid gap-4 sm:grid-cols-3">
