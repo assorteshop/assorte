@@ -2,15 +2,16 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { getBanners } from "@/lib/articles";
 
+// Article banners as soft rounded cards, matching the product cards (design v2, variant B).
 export async function PromoBanners() {
   const banners = await getBanners();
 
   return (
-    <section className="grid md:grid-cols-[1.2fr_1fr_1fr]">
+    <section className="mx-auto grid max-w-[1280px] gap-5 px-5 pb-14 pt-4 md:grid-cols-[1.2fr_1fr_1fr] md:gap-6 md:px-8">
       {banners.map((b) => (
         <div
           key={b.slot}
-          className={`relative min-h-[300px] overflow-hidden p-8 md:min-h-[272px] ${
+          className={`group/banner relative min-h-[320px] overflow-hidden rounded-[36px] p-8 md:min-h-[340px] ${
             b.tone === "red"
               ? "bg-red text-white"
               : b.image_url
@@ -21,7 +22,7 @@ export async function PromoBanners() {
           {b.image_url && (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={b.image_url} alt="" className="absolute inset-0 size-full object-cover" />
+              <img src={b.image_url} alt="" className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover/banner:scale-[1.04]" />
               <div
                 aria-hidden
                 className={`absolute inset-0 ${b.tone === "red" ? "bg-red/70" : "bg-graphite/60"}`}
