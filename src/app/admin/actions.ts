@@ -6,7 +6,7 @@ import { parseArticleForm } from "@/lib/article-schema";
 import { parseSettingsForm } from "@/lib/settings-schema";
 import { plainTextOf, sanitizeRichText } from "@/lib/rich-text";
 import { categories } from "@/lib/categories";
-import { moveInOrder, orderValue } from "@/lib/featured-order";
+import { moveInOrder, moveToPosition, orderValue, type MoveDir } from "@/lib/featured-order";
 import { createSupabaseServer, requireAdmin } from "@/lib/supabase-server";
 
 export type FormState = { error: string | null };
@@ -170,7 +170,9 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
 export async function moveFeatured(formData: FormData) {
   const { supabase } = await requireAdmin();
   const id = String(formData.get("id") ?? "");
-  const dir = formData.get("dir") === "up" ? "up" : "down";
+  const rawDir = String(formData.get("dir") ?? "");
+  const dir: MoveDir = rawDir === "up" || rawDir === "top" || rawDir === "bottom" ? rawDir : "down";
+  const pos = formData.get("pos");
 
   const { data } = await supabase
     .from("products")
@@ -179,7 +181,8 @@ export async function moveFeatured(formData: FormData) {
     .order("featured_order", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: true });
   const ids = (data ?? []).map((p) => p.id as string);
-  const next = moveInOrder(ids, id, dir);
+  const next = pos !== null ? moveToPosition(ids, id, Number(pos)) : moveInOrder(ids, id, dir);
+  if (next === ids) redirect("/admin/featured");
 
   await Promise.all(
     next.map((productId, i) => supabase.from("products").update({ featured_order: orderValue(i) }).eq("id", productId)),
