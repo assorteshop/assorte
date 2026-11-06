@@ -1,6 +1,7 @@
 import { cacheLife, cacheTag } from "next/cache";
 import { categories, type CategorySlug } from "./categories";
 import { supabase } from "./supabase";
+import { isZherebArticle, ZHEREB_ARTICLE, type ZherebVariant } from "./zhereb";
 
 export type Product = {
   id: string;
@@ -85,6 +86,11 @@ function lifetime() {
   cacheLife({ stale: 30, revalidate: 60, expire: 3600 });
 }
 
+// «Жереб» (article ZHEREB) lives only on its own page /zhereb: it never shows in the catalogue,
+// search, «Новинки», «Популярні» or the sitemap, even when published.
+export const withoutZhereb = <T extends { article?: string | null }>(rows: T[]) =>
+  rows.filter((p) => !isZherebArticle(p.article));
+
 export function collapseVariants(products: Product[]): ProductCardData[] {
   const groups = new Map<string, Product[]>();
   const order: string[] = [];
@@ -126,7 +132,7 @@ export async function getFeaturedProducts(limit = 12): Promise<ProductCardData[]
     console.error("[assorte] featured products query failed:", error.message);
     return [];
   }
-  return collapseVariants(data ?? []).slice(0, limit);
+  return collapseVariants(withoutZhereb(data ?? [])).slice(0, limit);
 }
 
 export async function getProducts(category?: CategorySlug): Promise<ProductCardData[]> {
@@ -148,7 +154,7 @@ export async function getProducts(category?: CategorySlug): Promise<ProductCardD
     console.error("[assorte] products query failed:", error.message);
     return [];
   }
-  return collapseVariants(data ?? []);
+  return collapseVariants(withoutZhereb(data ?? []));
 }
 
 export async function getNewProducts(limit = 12): Promise<ProductCardData[]> {
@@ -167,7 +173,7 @@ export async function getNewProducts(limit = 12): Promise<ProductCardData[]> {
     console.error("[assorte] new products query failed:", error.message);
     return [];
   }
-  return collapseVariants(data ?? []).slice(0, limit);
+  return collapseVariants(withoutZhereb(data ?? [])).slice(0, limit);
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
@@ -262,7 +268,7 @@ export async function searchProducts(query: string): Promise<ProductCardData[]> 
   }
 
   // Name matches first, then everything else in catalogue order.
-  const rows = (data ?? []) as Product[];
+  const rows = withoutZhereb((data ?? []) as Product[]);
   const score = (p: Product) => (words.every((w) => p.name.toLowerCase().includes(w)) ? 0 : 1);
   return collapseVariants([...rows].sort((a, b) => score(a) - score(b)));
 }
@@ -306,6 +312,36 @@ export async function getAllProductSlugs(): Promise<string[]> {
   "use cache";
   lifetime();
   if (!supabase) return designPlaceholders.map((p) => p.slug);
-  const { data } = await supabase.from("products").select("slug").eq("is_published", true);
-  return (data ?? []).map((p) => p.slug);
+  const { data } = await supabase.from("products").select("slug, article").eq("is_published", true);
+  return withoutZhereb(data ?? []).map((p) => p.slug);
+}
+
+// Only on this computer without the database, and only when started with ZHEREB_DEMO=1:
+// sample «Жереб» variants to see the «ЖИВИЙ» state. Never used on the live site (it has the database).
+const zherebDemo: ZherebVariant[] = [
+  "Дощова неділя",
+  "Нічна дорога",
+  "Гучно на кухні",
+  "Перемотка",
+  "Своє",
+  "Чистий жереб",
+].map((label, i) => ({ slug: `zhereb-demo-${i + 1}`, name: "Жереб", variant_label: label, price_uah: 1000, image_url: null }));
+
+/** Published «Жереб» products (article ZHEREB), one per mood. Empty list = the page is «СКОРО». */
+export async function getZherebVariants(): Promise<ZherebVariant[]> {
+  "use cache";
+  lifetime();
+  if (!supabase) return process.env.ZHEREB_DEMO === "1" ? zherebDemo : [];
+
+  const { data, error } = await supabase
+    .from("products")
+    .select("slug, name, variant_label, price_uah, image_url")
+    .eq("is_published", true)
+    .ilike("article", ZHEREB_ARTICLE)
+    .order("sort_order", { ascending: true });
+  if (error) {
+    console.error("[assorte] zhereb query failed:", error.message);
+    return [];
+  }
+  return (data ?? []) as ZherebVariant[];
 }

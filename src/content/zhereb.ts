@@ -1,5 +1,7 @@
-// All texts of the hidden «Жереб» landing page (/zhereb), copied word for word from the founder's brief.
+// All texts of the «Жереб» page (/zhereb), copied word for word from the founder's briefs.
 // Edit wording here only; the page itself only lays these texts out.
+// Mood tiles are matched to the shop's variants by name: in the admin, the variant of the products
+// with article ZHEREB must be called exactly like a mood below (for example «Дощова неділя»).
 
 export const zhereb = {
   seo: {
@@ -12,9 +14,9 @@ export const zhereb = {
     title: "Жереб",
     subtitle: "Сліпе побачення з платівкою.",
     lead: "Ви обираєте настрій. Ми — платівку. Решту вирішує доля.",
-    button: "Написати нам",
-    // Alt text of the hero photo, from the photo studio README.
-    photoAlt: "Алекс у затишній вінтажній музичній кімнаті тримає крафтовий конверт з платівкою «Жереб»",
+    buttonLive: "Обрати настрій",
+    buttonSoon: "Хочу перший «Жереб»",
+    photoAlt: "Дівчина в затишній вінтажній кімнаті тримає крафтовий конверт „Жереб“",
   },
 
   about: [
@@ -26,8 +28,8 @@ export const zhereb = {
   steps: {
     title: "Як це працює",
     items: [
-      "Оберіть настрій.",
-      "Після замовлення ми напишемо вам у зручний месенджер і поставимо три короткі запитання.",
+      "Оберіть настрій — або довіртеся жеребу.",
+      "Після оплати ми напишемо вам у зручний месенджер і поставимо три короткі запитання.",
       "Підбираємо платівку, загортаємо її і вкладаємо листівку: чому випала саме вона.",
       "Ви знімаєте обгортку. Далі — лише ви і музика.",
     ],
@@ -107,11 +109,33 @@ export const zhereb = {
         q: "Чи можна замовити конкретного виконавця?",
         a: "Ні, і в цьому вся суть. Але ви можете сказати, кого любите, а кого — точно не треба.",
       },
+      {
+        q: "А якщо я не відповім на запитання?",
+        a: "Нічого страшного. Якщо за добу відповіді немає, ми підберемо платівку за настроєм, який ви обрали.",
+      },
+      {
+        q: "Як оплатити?",
+        a: "Карткою онлайн під час замовлення. Кожен «Жереб» ми підбираємо індивідуально, тому відправляємо лише після оплати.",
+      },
     ],
   },
 
   final: {
     text: "Ця платівка могла дістатися будь-кому. Але випаде вам.",
-    button: "Написати нам",
+    // «СКОРО»: the same Telegram button as in the hero, with a small line under it.
+    soonNote: "Підпишіться — і дізнаєтеся про старт першими.",
   },
+
+  // Buttons and captions of the mood picker.
+  ui: {
+    draw: "Тягнути жереб",
+    drawResult: (name: string) => `Вам випало: ${name}.`,
+    pickFirst: "Спершу оберіть настрій",
+    addToCart: "Додати в кошик",
+    order: "Замовити",
+    choose: "Оберіть настрій",
+  },
+
+  // «СКОРО»: «Хочу перший «Жереб»» leads to the ASSORTE Telegram channel (link given by the founder).
+  waitlistUrl: "https://t.me/assorteshop",
 } as const;
