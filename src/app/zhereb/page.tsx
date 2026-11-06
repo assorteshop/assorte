@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Footer } from "@/components/home/Footer";
 import { Header } from "@/components/home/Header";
+import { InstagramButton } from "@/components/zhereb/InstagramButton";
 import { MoodPicker } from "@/components/zhereb/MoodPicker";
 import { MOODS_ID, ZherebCta } from "@/components/zhereb/ZherebCta";
 import { zhereb as t } from "@/content/zhereb";
@@ -177,6 +178,27 @@ export default async function ZherebPage() {
             </div>
           </div>
           <p className="mt-3 text-[12px] text-muted">{t.card.caption}</p>
+        </section>
+
+        {/* 7½. Поділіться моментом: an invitation only — no videos, photos, reviews or counters yet. */}
+        <section className={`${wrap} pb-16 md:pb-24`}>
+          <div className="rounded-[36px] bg-white p-7 md:p-12">
+            <h2 className={h2}>{t.moment.title}</h2>
+            <p className="mt-4 max-w-[640px] text-[16px] leading-relaxed md:text-[17px]">{t.moment.lead}</p>
+            <ol className="mt-8 grid gap-3 md:grid-cols-3 md:gap-5">
+              {t.moment.steps.map((step, i) => (
+                <li key={step} className="flex gap-4 rounded-[24px] bg-ivory p-5">
+                  <span className="font-heading text-[26px] font-bold leading-none text-red">{i + 1}</span>
+                  <p className="text-[15px] leading-relaxed">{step}</p>
+                </li>
+              ))}
+            </ol>
+            <p className="mt-6 max-w-[640px] text-[15px] leading-relaxed text-graphite/80">{t.moment.gift}</p>
+            <div className="mt-7">
+              <InstagramButton href={t.moment.instagramUrl} label={t.moment.button} />
+            </div>
+            <p className="mt-3 text-[13px] text-muted">{t.moment.hashtag}</p>
+          </div>
         </section>
 
         {/* 8. Запитання: native details/summary. */}
