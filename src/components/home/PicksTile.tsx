@@ -5,7 +5,7 @@ import { ArrowRight } from "lucide-react";
 // First tile of the popular-products row: Alex, the face of ASSORTE, carrying on the look of the first screen.
 export function PicksTile() {
   return (
-    <div className="relative h-full min-h-[420px] overflow-hidden rounded-[20px] bg-[#ebe5e1] text-white">
+    <div className="relative h-full min-h-[420px] overflow-hidden rounded-[36px] bg-[#ebe5e1] text-white">
       <Image
         src="/images/home/alex-picks.webp"
         alt="Алекс усміхається у світлій сукні з квітковим принтом"

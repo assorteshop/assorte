@@ -6,29 +6,29 @@ import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { formatUah } from "@/lib/format";
 import type { ProductCardData } from "@/lib/products";
 
-// Editorial card: the photo sits on a warm tile (its white background melts into the tile),
-// no white box around the card, bold price in the heading font, the heart cart button.
+// Soft card (design v2, variant B): one warm rounded block, the photo fills its whole top,
+// name and price sit inside the block, bold price in the heading font, the heart cart button.
 export function ProductCard({ product }: { product: ProductCardData }) {
   const href = `/products/${product.slug}`;
   return (
-    <article className="group/card relative flex h-full flex-col">
-      <div className="relative aspect-[4/5] overflow-hidden rounded-[20px] bg-[#f0eae3]">
+    <article className="group/card relative flex h-full flex-col overflow-hidden rounded-[36px] bg-[#f3eee8]">
+      <div className="relative aspect-square overflow-hidden rounded-[36px] bg-[#ebe4dc]">
         {product.image_url && (
           <Image
             src={product.image_url}
             alt={product.name}
             fill
             sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 78vw"
-            className="object-contain p-5 mix-blend-multiply transition-transform duration-500 group-hover/card:scale-[1.04]"
+            className="object-cover transition-transform duration-500 group-hover/card:scale-[1.04]"
           />
         )}
         {product.badge && (
-          <span className="absolute left-4 top-4 rounded-full bg-red px-3.5 py-1.5 text-[11px] font-medium text-white">
+          <span className="absolute left-5 top-5 rounded-full bg-red px-3.5 py-1.5 text-[11px] font-medium text-white">
             {product.badge}
           </span>
         )}
       </div>
-      <div className="flex flex-1 flex-col px-1 pt-4">
+      <div className="flex flex-1 flex-col px-6 pb-5 pt-4">
         <h3 className="line-clamp-2 text-[16px] leading-snug">
           <Link href={href} className="hover:text-red after:absolute after:inset-0 after:content-['']">
             {product.name}
