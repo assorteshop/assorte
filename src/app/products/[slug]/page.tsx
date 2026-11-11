@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { TrackViewItem } from "@/components/product/TrackViewItem";
@@ -21,6 +21,7 @@ import { richTextToHtml } from "@/lib/rich-text";
 import { getProductReviews } from "@/lib/reviews";
 import { descriptionSnippet, productJsonLd } from "@/lib/seo";
 import { getSiteUrl } from "@/lib/site";
+import { isZherebArticle } from "@/lib/zhereb";
 
 export async function generateMetadata(
   props: PageProps<"/products/[slug]">,
@@ -42,6 +43,8 @@ export async function generateMetadata(
 async function Content(props: PageProps<"/products/[slug]">) {
   const product = await getProductBySlug((await props.params).slug);
   if (!product) notFound();
+  // «Жереб» variants have no page of their own: they are chosen on /zhereb.
+  if (isZherebArticle(product.article)) redirect("/zhereb");
   const category = product.category ? getCategory(product.category) : undefined;
   const descriptionHtml = richTextToHtml(product.description);
   const [variants, guide, reviews] = await Promise.all([

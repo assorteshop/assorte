@@ -11,6 +11,10 @@ export type HeroSlide = {
   /** Backdrop colour taken from the photo, shown while it loads and around a portrait on computers. */
   bg: string;
   alt: string;
+  /** Tailwind classes that place the photo inside the frame (phone first, then md:). */
+  position?: string;
+  /** Words over the photo: the brand line (default) or the «Жереб» invitation. */
+  text?: "brand" | "zhereb";
 };
 
 export const heroSlides: HeroSlide[] = [
@@ -58,6 +62,18 @@ export const heroSlides: HeroSlide[] = [
   },
 ];
 
-// For now the first screen shows only the first photo (lemon at the eye), without the slideshow.
-// All photos stay above; to bring the slideshow back, set this to heroSlides.
-export const shownHeroSlides: HeroSlide[] = heroSlides.slice(0, 1);
+// «Жереб»: Alex with the craft envelope (photo studio export, AI label kept in the file metadata).
+// Placement follows the photo README: phone centre 30%, computer 65% centre.
+export const zherebSlide: HeroSlide = {
+  id: "zhereb",
+  desktop: "/images/zhereb/hero-d_2400.webp",
+  mobile: "/images/zhereb/hero-m_1200.webp",
+  bg: "#5a3a22",
+  alt: "Дівчина в затишній вінтажній кімнаті тримає крафтовий конверт „Жереб“",
+  position: "object-[50%_30%] md:object-[65%_50%]",
+  text: "zhereb",
+};
+
+// The first screen alternates two photos: the lemon at the eye, then «Жереб».
+// All other photos stay above; to show them all, set this to heroSlides.
+export const shownHeroSlides: HeroSlide[] = [heroSlides[0], zherebSlide];
