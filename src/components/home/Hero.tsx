@@ -42,6 +42,9 @@ export function Hero() {
     return () => clearInterval(t);
   }, [still, paused]);
 
+  const hasZhereb = slides.some((s) => s.text === "zhereb");
+  const onZhereb = slides[active]?.text === "zhereb";
+
   return (
     <section
       aria-roledescription={slides.length > 1 ? "carousel" : undefined}
@@ -65,8 +68,8 @@ export function Hero() {
                 alt={on ? s.alt : ""}
                 fetchPriority={i === 0 ? "high" : "auto"}
                 decoding="async"
-                className={`absolute inset-0 h-full w-full object-cover object-[50%_22%] ${
-                  s.desktop ? "md:object-center" : "md:inset-auto md:right-[6%] md:top-0 md:w-auto md:object-contain md:[mask-image:linear-gradient(to_right,transparent,#000_18%,#000_82%,transparent)]"
+                className={`absolute inset-0 h-full w-full object-cover ${s.position ?? "object-[50%_22%]"} ${
+                  s.position ? "" : s.desktop ? "md:object-center" : "md:inset-auto md:right-[6%] md:top-0 md:w-auto md:object-contain md:[mask-image:linear-gradient(to_right,transparent,#000_18%,#000_82%,transparent)]"
                 } ${on && !still ? "animate-[kenburns_9s_ease-out_forwards]" : ""}`}
               />
             </picture>
@@ -80,7 +83,12 @@ export function Hero() {
 
       <div className="absolute inset-x-0 bottom-0">
         <div className="relative mx-auto max-w-[1280px] px-5 pb-10 md:px-8 md:pb-16">
-          <div>
+          {/* Words of every slide sit in one place and fade like the photos; the hidden ones are inert. */}
+          <div className="grid">
+          <div
+            inert={onZhereb}
+            className={`[grid-area:1/1] self-end transition-opacity duration-700 ${onZhereb ? "opacity-0" : "opacity-100"}`}
+          >
             <p className="text-[11px] font-medium uppercase tracking-[0.35em] text-white/85">
               Продумані деталі для кращих моментів
             </p>
@@ -97,6 +105,25 @@ export function Hero() {
               До каталогу
               <ArrowRight size={16} />
             </Link>
+          </div>
+          {hasZhereb && (
+            <div
+              inert={!onZhereb}
+              className={`[grid-area:1/1] self-end transition-opacity duration-700 ${onZhereb ? "opacity-100" : "opacity-0"}`}
+            >
+              <p className="font-heading text-[48px] font-bold leading-none sm:text-[68px] lg:text-[92px]">Жереб</p>
+              <p className="mt-2 font-script text-[23px] leading-tight sm:text-[32px] lg:text-[38px]">
+                Сліпе побачення з платівкою.
+              </p>
+              <Link
+                href="/zhereb"
+                className="group mt-6 inline-flex items-center gap-3 rounded-full bg-white px-7 py-4 text-[15px] font-medium text-graphite transition-colors hover:bg-red hover:text-white md:mt-8"
+              >
+                Дізнатися більше
+                <ArrowRight size={16} />
+              </Link>
+            </div>
+          )}
           </div>
 
           {!still && slides.length > 1 && (

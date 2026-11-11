@@ -6,6 +6,7 @@ import { OrganizationJsonLd } from "@/components/home/OrganizationJsonLd";
 import { PopularProducts } from "@/components/home/PopularProducts";
 import { PromoBanners } from "@/components/home/PromoBanners";
 import { TrustBar } from "@/components/home/TrustBar";
+import { ZherebPromo } from "@/components/home/ZherebPromo";
 
 export default function Home() {
   return (
@@ -17,6 +18,7 @@ export default function Home() {
         <Suspense fallback={<div className="mx-auto h-[520px] max-w-[1280px]" aria-hidden />}>
           <PopularProducts />
         </Suspense>
+        <ZherebPromo />
         <PromoBanners />
         <Suspense fallback={null}>
           <OrganizationJsonLd />
