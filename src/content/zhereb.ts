@@ -148,6 +148,9 @@ export const zhereb = {
   ui: {
     draw: "Тягнути жереб",
     drawResult: (name: string) => `Вам випало: ${name}.`,
+    pickResult: (name: string) => `Ваш настрій: ${name}.`,
+    soonPanel:
+      "«Жереб» ще готується до старту. Підпишіться — і ви першими дізнаєтеся, коли можна буде замовити.",
     pickFirst: "Спершу оберіть настрій",
     addToCart: "Додати в кошик",
     order: "Замовити",

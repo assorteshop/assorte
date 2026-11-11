@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { zhereb } from "@/content/zhereb";
-import { drawSteps, isZherebArticle, matchMoods, pickRandom, zherebState, type ZherebVariant } from "./zhereb";
+import { drawSteps, isZherebArticle, matchMoods, pickRandom, resultLine, zherebState, type ZherebVariant } from "./zhereb";
 
 const moods = zhereb.moods.items.map((m) => m.name);
 const variant = (label: string | null, slug = "zhereb-x"): ZherebVariant => ({
@@ -65,6 +65,21 @@ describe("«Тягнути жереб»", () => {
       expect(total).toBeGreaterThan(1400);
       expect(total).toBeLessThan(1600);
       steps.forEach(([tile]) => expect(all).toContain(tile));
+    }
+  });
+});
+
+describe("result panel line", () => {
+  it("says «Вам випало» after the draw", () => {
+    expect(resultLine("Нічна дорога", "draw", zhereb.ui)).toBe("Вам випало: Нічна дорога.");
+  });
+  it("says «Ваш настрій» after a click", () => {
+    expect(resultLine("Своє", "click", zhereb.ui)).toBe("Ваш настрій: Своє.");
+  });
+  it("works for every mood", () => {
+    for (const m of moods) {
+      expect(resultLine(m, "draw", zhereb.ui)).toBe(`Вам випало: ${m}.`);
+      expect(resultLine(m, "click", zhereb.ui)).toBe(`Ваш настрій: ${m}.`);
     }
   });
 });
