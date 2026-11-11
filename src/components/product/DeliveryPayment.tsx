@@ -1,5 +1,4 @@
 import { Banknote, CreditCard, Mail, Truck } from "lucide-react";
-import { ONLINE_DISCOUNT_PERCENT } from "@/lib/pricing";
 
 // Delivery and payment under the price. The carrier chips use our own simple icons
 // (not the carriers' logos).
@@ -32,8 +31,7 @@ export function DeliveryPayment({ onlineEnabled }: { onlineEnabled: boolean }) {
             <span className="grid size-6 shrink-0 place-items-center rounded-full bg-graphite text-[12px] text-white">2</span>
             <CreditCard size={18} strokeWidth={1.5} className="shrink-0 text-red" />
             <span>
-              Оплата карткою на сайті:{" "}
-              <strong className="font-medium text-red">додаткова знижка {ONLINE_DISCOUNT_PERCENT}%</strong>
+              Оплата карткою на сайті
               {!onlineEnabled && <span className="text-muted"> (скоро)</span>}
             </span>
           </li>

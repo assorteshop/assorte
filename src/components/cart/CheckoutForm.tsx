@@ -5,7 +5,6 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { placeOrder, type OrderState } from "@/app/actions/order";
 import { clearCart, useCart } from "@/lib/cart";
 import { formatUah } from "@/lib/format";
-import { ONLINE_DISCOUNT_PERCENT, onlineDiscount } from "@/lib/pricing";
 import { CONTACT_CHANNELS } from "@/lib/order-message";
 import { NovaPoshtaPicker } from "./NovaPoshtaPicker";
 import { FIRST_TOUCH_KEY, parseStoredFirstTouch, track, trackPurchaseOnce } from "@/lib/analytics";
@@ -23,7 +22,6 @@ export function CheckoutForm({ onlineEnabled }: { onlineEnabled: boolean }) {
   const payForm = useRef<HTMLFormElement>(null);
   const [delivery, setDelivery] = useState<"nova_poshta" | "ukrposhta">("nova_poshta");
   const [payment, setPayment] = useState<"cod" | "liqpay">("cod");
-  const discount = payment === "liqpay" ? onlineDiscount(total) : 0;
 
   // Where the customer first came from (utm, referrer or direct), saved with the order.
   const [firstTouch] = useState(() => {
@@ -187,10 +185,7 @@ export function CheckoutForm({ onlineEnabled }: { onlineEnabled: boolean }) {
           {onlineEnabled ? (
             <label className="flex items-center gap-3 rounded-[4px] bg-white px-4 py-3 text-[14px]">
               <input type="radio" name="payment" value="liqpay" checked={payment === "liqpay"} onChange={() => setPayment("liqpay")} className="accent-[#b60016]" />
-              <span>
-                Оплата карткою на сайті{" "}
-                <strong className="font-medium text-red">додаткова знижка {ONLINE_DISCOUNT_PERCENT}%</strong>
-              </span>
+              Оплата карткою на сайті
             </label>
           ) : (
             <p className="px-1 text-[12px] text-muted">Оплата карткою онлайн буде додана найближчим часом.</p>
@@ -215,15 +210,9 @@ export function CheckoutForm({ onlineEnabled }: { onlineEnabled: boolean }) {
             </li>
           ))}
         </ul>
-        {discount > 0 && (
-          <p className="mt-4 flex justify-between text-[14px] text-red">
-            <span>Знижка за оплату карткою ({ONLINE_DISCOUNT_PERCENT}%)</span>
-            <span>−{formatUah(discount)}</span>
-          </p>
-        )}
-        <p className={`flex justify-between border-t border-line pt-4 text-[18px] font-medium ${discount > 0 ? "mt-2" : "mt-4"}`}>
+        <p className="mt-4 flex justify-between border-t border-line pt-4 text-[18px] font-medium">
           <span>До сплати</span>
-          <span>{formatUah(total - discount)}</span>
+          <span>{formatUah(total)}</span>
         </p>
         <p className="mt-1 text-[12px] text-muted">Вартість доставки за тарифами перевізника.</p>
         <p role="alert" className="mt-4 min-h-5 text-[13px] text-red">

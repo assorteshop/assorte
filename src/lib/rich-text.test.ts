@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { onlineDiscount } from "./pricing";
 import { plainTextOf, richTextToHtml, sanitizeRichText } from "./rich-text";
 
 describe("sanitizeRichText", () => {
@@ -33,13 +32,8 @@ describe("richTextToHtml", () => {
   });
 });
 
-describe("plainTextOf / onlineDiscount", () => {
+describe("plainTextOf", () => {
   it("strips tags", () => {
     expect(plainTextOf("<p>Привіт <strong>світ</strong></p><p>ще</p>")).toBe("Привіт світ ще");
-  });
-  it("is 5 percent, rounded", () => {
-    expect(onlineDiscount(1500)).toBe(75);
-    expect(onlineDiscount(1990)).toBe(100);
-    expect(onlineDiscount(0)).toBe(0);
   });
 });
