@@ -1,5 +1,4 @@
 import { formatUah } from "./format";
-import { onlineDiscount } from "./pricing";
 import { getSiteUrl } from "./site";
 import { supabase } from "./supabase";
 
@@ -107,9 +106,7 @@ export async function notifyPayment(number: number, amount: number) {
 }
 
 export async function notifyNewOrder(order: NewOrder) {
-  const { lines, total: subtotal } = await describeItems(order.items);
-  const discount = order.payment === "liqpay" ? onlineDiscount(subtotal) : 0;
-  const total = subtotal - discount;
+  const { lines, total } = await describeItems(order.items);
   const carrier = order.delivery === "ukrposhta" ? "Укрпошта" : "Нова пошта";
   const link = adminUrl();
   const paymentLabel =
@@ -123,7 +120,6 @@ export async function notifyNewOrder(order: NewOrder) {
     "",
     itemsText,
     "",
-    discount ? `Знижка за оплату карткою: −${formatUah(discount)}` : "",
     `Разом: ${formatUah(total)} (${paymentLabel})`,
     order.comment ? `Коментар: ${order.comment}` : "",
     "",
@@ -140,7 +136,6 @@ export async function notifyNewOrder(order: NewOrder) {
     "",
     lines.map((l) => `• ${escapeHtml(l.name)} × ${l.qty} — ${formatUah(l.sum)}`).join("\n"),
     "",
-    discount ? `Знижка за оплату карткою: −${formatUah(discount)}` : "",
     `<b>Разом: ${formatUah(total)}</b> (${paymentLabel})`,
     order.comment ? `💬 ${escapeHtml(order.comment)}` : "",
     "",
@@ -159,7 +154,6 @@ export async function notifyNewOrder(order: NewOrder) {
         `<tr><td style="padding:6px 0;border-bottom:1px solid #eee">${escapeHtml(l.name)} × ${l.qty}</td><td style="padding:6px 0;border-bottom:1px solid #eee;text-align:right">${formatUah(l.sum)}</td></tr>`,
     )
     .join("")}</table>
-${discount ? `<p>Знижка за оплату карткою: −${formatUah(discount)}</p>` : ""}
 <p style="font-size:17px"><b>Разом: ${formatUah(total)}</b> (${paymentLabel})</p>
 ${order.comment ? `<p>Коментар: ${escapeHtml(order.comment)}</p>` : ""}
 <p><a href="${link}" style="color:#b60016">Відкрити в адмінці</a></p></div>`;
