@@ -8,7 +8,7 @@ import { zhereb as t } from "@/content/zhereb";
 import { track } from "@/lib/analytics";
 import { addToCart, useCart } from "@/lib/cart";
 import { formatUah } from "@/lib/format";
-import { drawSteps, pickRandom, type ZherebState, type ZherebVariant } from "@/lib/zhereb";
+import { drawSteps, pickRandom, resultLine, type ZherebState, type ZherebVariant } from "@/lib/zhereb";
 import { MOODS_ID, scrollToMoods } from "./ZherebCta";
 
 type Mood = (typeof t.moods.items)[number];
@@ -24,6 +24,35 @@ const subscribe = (onChange: () => void) => {
 };
 const pastHero = () => window.scrollY > window.innerHeight * 0.8;
 
+const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const HEADER = 72; // the white header covers the top of the screen
+
+/** Smoothly brings an element into view and resolves when the scrolling has finished. */
+function scrollIntoViewAndWait(el: HTMLElement | null, block: "start" | "center"): Promise<void> {
+  if (!el) return Promise.resolve();
+  const r = el.getBoundingClientRect();
+  const fits = r.height <= window.innerHeight - HEADER;
+  const visible = r.top >= HEADER && r.bottom <= window.innerHeight;
+  if (visible) return Promise.resolve();
+  const still = reducedMotion();
+  // A block taller than the screen (the six tiles on a phone) starts just under the header.
+  const top =
+    block === "center" && fits
+      ? window.scrollY + r.top - (window.innerHeight - r.height) / 2
+      : window.scrollY + r.top - HEADER - 8;
+  window.scrollTo({ top, behavior: still ? "auto" : "smooth" });
+  if (still) return Promise.resolve();
+  return new Promise((resolve) => {
+    const done = () => {
+      window.removeEventListener("scrollend", done);
+      clearTimeout(timer);
+      resolve();
+    };
+    const timer = setTimeout(done, 900);
+    window.addEventListener("scrollend", done, { once: true });
+  });
+}
+
 const gaItem = (v: ZherebVariant, mood: string) => ({
   item_id: v.slug,
   item_name: v.name,
@@ -33,8 +62,9 @@ const gaItem = (v: ZherebVariant, mood: string) => ({
 });
 
 /**
- * The six moods as a choice (radio group). «ЖИВИЙ»: price, «Додати в кошик» and the phone bar.
- * «СКОРО»: tiles and «Тягнути жереб» still work, just without price and cart.
+ * The six moods as a choice (radio group) and the result panel under them.
+ * «СКОРО»: tiles and «Тягнути жереб» work; the panel invites to the Telegram channel.
+ * «ЖИВИЙ»: the panel shows the price and «Додати в кошик»; on phones there is also the order bar.
  * `variants[i]` is the shop variant of mood i, or null when that mood is not on sale.
  */
 export function MoodPicker({ state, variants }: { state: ZherebState; variants: (ZherebVariant | null)[] }) {
@@ -45,12 +75,14 @@ export function MoodPicker({ state, variants }: { state: ZherebState; variants: 
   const allowed = moods.map((_, i) => i).filter((i) => !live || variants[i]);
 
   const [selected, setSelected] = useState<number | null>(null);
+  const [how, setHow] = useState<"draw" | "click">("click");
   const [lit, setLit] = useState<number | null>(null);
   const [drawing, setDrawing] = useState(false);
-  const [drawn, setDrawn] = useState<number | null>(null);
   const [added, setAdded] = useState(false);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const tiles = useRef<(HTMLDivElement | null)[]>([]);
+  const grid = useRef<HTMLDivElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
   const { items } = useCart();
   const showBar = useSyncExternalStore(subscribe, pastHero, () => false);
 
@@ -76,10 +108,10 @@ export function MoodPicker({ state, variants }: { state: ZherebState; variants: 
     return () => clearTimeout(timer);
   }, [added]);
 
-  const choose = (i: number, fromDraw = false) => {
+  const choose = (i: number, via: "draw" | "click") => {
     if (!allowed.includes(i)) return;
     setSelected(i);
-    if (!fromDraw) setDrawn(null);
+    setHow(via);
     const v = variants[i];
     track("select_item", {
       item_list_name: "Жереб",
@@ -87,22 +119,25 @@ export function MoodPicker({ state, variants }: { state: ZherebState; variants: 
     });
   };
 
-  const draw = () => {
+  const draw = async () => {
     if (drawing || allowed.length === 0) return;
     const result = pickRandom(allowed);
     track("zhereb_draw", { item_variant: moods[result].name, state });
-    setDrawn(null);
-    const finish = () => {
-      setLit(null);
-      setDrawing(false);
-      choose(result, true);
-      setDrawn(result);
-    };
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return finish();
-
     setDrawing(true);
     timers.current.forEach(clearTimeout);
     timers.current = [];
+
+    // 1) The whole grid on screen (on a phone, from its top), 2) the light runs, 3) to the result panel.
+    await scrollIntoViewAndWait(grid.current, "center");
+    const finish = () => {
+      setLit(null);
+      setDrawing(false);
+      choose(result, "draw");
+      // Wait for the panel to appear, then bring it into view.
+      requestAnimationFrame(() => requestAnimationFrame(() => scrollIntoViewAndWait(panel.current, "center")));
+    };
+    if (reducedMotion()) return finish();
+
     let at = 0;
     for (const [tile, wait] of drawSteps(allowed, result)) {
       timers.current.push(setTimeout(() => setLit(tile), at));
@@ -137,16 +172,18 @@ export function MoodPicker({ state, variants }: { state: ZherebState; variants: 
     if (e.key === "ArrowLeft" || e.key === "ArrowUp") next = allowed[(at - 1 + allowed.length) % allowed.length];
     if (e.key === " " || e.key === "Enter") {
       e.preventDefault();
-      choose(i);
+      choose(i, "click");
       return;
     }
     if (next !== null) {
       e.preventDefault();
-      choose(next);
+      choose(next, "click");
       tiles.current[next]?.focus();
     }
   };
   const focusable = selected ?? allowed[0];
+  // In «СКОРО» the panel appears after a choice; in «ЖИВИЙ» it is always there (price and the button wait for a choice).
+  const showPanel = live || (selected !== null && !drawing);
 
   return (
     <>
@@ -165,13 +202,14 @@ export function MoodPicker({ state, variants }: { state: ZherebState; variants: 
       </div>
 
       <div
+        ref={grid}
         role="radiogroup"
         aria-labelledby={`${MOODS_ID}-title`}
-        className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+        className="mt-8 grid scroll-mt-24 gap-5 sm:grid-cols-2 lg:grid-cols-3"
       >
         {moods.map((m: Mood, i) => {
           const can = allowed.includes(i);
-          const on = selected === i;
+          const on = selected === i && !drawing;
           const glow = lit === i;
           return (
             <div
@@ -180,16 +218,24 @@ export function MoodPicker({ state, variants }: { state: ZherebState; variants: 
                 tiles.current[i] = el;
               }}
               role="radio"
-              aria-checked={on}
+              aria-checked={selected === i}
               aria-disabled={!can || undefined}
               tabIndex={can && i === focusable ? 0 : -1}
-              onClick={() => !drawing && choose(i)}
+              onClick={() => !drawing && choose(i, "click")}
               onKeyDown={(e) => !drawing && onKey(e, i)}
-              className={`flex flex-col rounded-[36px] bg-[#f0eae3] p-7 outline-none transition-[box-shadow,background-color] duration-150 focus-visible:ring-2 focus-visible:ring-graphite focus-visible:ring-offset-2 focus-visible:ring-offset-ivory md:p-8 ${
-                can ? "cursor-pointer hover:bg-[#ebe3da]" : "cursor-not-allowed opacity-50"
-              } ${on || glow ? "shadow-[inset_0_0_0_2px_#b60016]" : ""} ${glow ? "bg-[#ebe3da]" : ""}`}
+              className={`relative flex flex-col rounded-[36px] p-7 outline-none transition-[box-shadow,background-color] duration-100 focus-visible:ring-2 focus-visible:ring-graphite focus-visible:ring-offset-2 focus-visible:ring-offset-ivory md:p-8 ${
+                on || glow ? "bg-white shadow-[inset_0_0_0_2px_#b60016]" : "bg-[#f0eae3]"
+              } ${can ? (on || glow ? "cursor-pointer" : "cursor-pointer hover:bg-[#ebe3da]") : "cursor-not-allowed opacity-50"}`}
             >
-              <h3 className="font-heading text-[24px] font-bold leading-tight">{m.name}</h3>
+              {on && (
+                <span
+                  aria-hidden
+                  className="absolute right-5 top-5 grid size-7 place-items-center rounded-full bg-red text-white"
+                >
+                  <Check size={16} strokeWidth={2.6} />
+                </span>
+              )}
+              <h3 className="pr-8 font-heading text-[24px] font-bold leading-tight">{m.name}</h3>
               <p className="mt-2 font-script text-[24px] leading-snug text-red">{m.slogan}</p>
               <p className="mt-4 text-[15px] leading-relaxed text-graphite/80">{m.text}</p>
             </div>
@@ -197,36 +243,60 @@ export function MoodPicker({ state, variants }: { state: ZherebState; variants: 
         })}
       </div>
 
-      <p aria-live="polite" className="mt-6 min-h-[36px] font-script text-[30px] leading-tight">
-        {drawn !== null && t.ui.drawResult(moods[drawn].name)}
-      </p>
+      {/* Result panel: what was chosen and what to do next. */}
+      <div ref={panel} aria-live="polite" className="scroll-mt-24">
+        {showPanel && (
+          <div className="mt-6 rounded-[36px] bg-white p-7 md:p-9">
+            {selected !== null && !drawing && (
+              <p className="font-script text-[32px] leading-tight md:text-[40px]">
+                {resultLine(moods[selected].name, how, t.ui)}
+              </p>
+            )}
 
-      {live && (
-        <div className="mt-4 flex flex-wrap items-center gap-x-8 gap-y-4">
-          {price !== null && <p className="font-heading text-[30px] font-bold leading-none">{formatUah(price)}</p>}
-          <div>
-            <button
-              type="button"
-              onClick={() => add()}
-              disabled={!chosen}
-              aria-describedby={!chosen ? "zhereb-pick-first" : undefined}
-              className="inline-flex items-center gap-2 rounded-full bg-red px-7 py-3.5 text-[15px] font-medium text-white transition-colors hover:bg-graphite disabled:cursor-not-allowed disabled:bg-red/40"
-            >
-              {added ? <Check size={16} aria-hidden /> : null}
-              {added ? "Додано в кошик" : t.ui.addToCart} {!added && <ArrowRight size={16} aria-hidden />}
-            </button>
-            <p id="zhereb-pick-first" role="status" className="mt-2 min-h-5 text-[13px] text-muted">
-              {!chosen ? (
-                t.ui.pickFirst
-              ) : inCart ? (
-                <Link href="/cart" className="text-red underline underline-offset-4">
-                  Перейти до кошика
-                </Link>
-              ) : null}
-            </p>
+            {!live && selected !== null && !drawing && (
+              <>
+                <p className="mt-3 max-w-[620px] text-[16px] leading-relaxed">{t.ui.soonPanel}</p>
+                <a
+                  href={t.waitlistUrl}
+                  target="_blank"
+                  rel="noopener"
+                  onClick={() => track("zhereb_waitlist_click", { link_url: t.waitlistUrl, mood: moods[selected].name })}
+                  className="mt-6 inline-flex items-center gap-2 rounded-full bg-red px-7 py-3.5 text-[15px] font-medium text-white transition-colors hover:bg-graphite"
+                >
+                  {t.hero.buttonSoon} <ArrowRight size={16} aria-hidden />
+                </a>
+              </>
+            )}
+
+            {live && (
+              <div className={`flex flex-wrap items-center gap-x-8 gap-y-4 ${selected !== null && !drawing ? "mt-5" : ""}`}>
+                {price !== null && <p className="font-heading text-[30px] font-bold leading-none">{formatUah(price)}</p>}
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => add()}
+                    disabled={!chosen || drawing}
+                    aria-describedby={!chosen ? "zhereb-pick-first" : undefined}
+                    className="inline-flex items-center gap-2 rounded-full bg-red px-7 py-3.5 text-[15px] font-medium text-white transition-colors hover:bg-graphite disabled:cursor-not-allowed disabled:bg-red/40"
+                  >
+                    {added ? <Check size={16} aria-hidden /> : null}
+                    {added ? "Додано в кошик" : t.ui.addToCart} {!added && <ArrowRight size={16} aria-hidden />}
+                  </button>
+                  <p id="zhereb-pick-first" role="status" className="mt-2 min-h-5 text-[13px] text-muted">
+                    {!chosen ? (
+                      t.ui.pickFirst
+                    ) : inCart ? (
+                      <Link href="/cart" className="text-red underline underline-offset-4">
+                        Перейти до кошика
+                      </Link>
+                    ) : null}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Phone bar («ЖИВИЙ», under 768px, after the photo). The page leaves room for it at the bottom. */}
       {live && (

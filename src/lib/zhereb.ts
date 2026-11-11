@@ -52,3 +52,12 @@ export function drawSteps(allowed: readonly number[], result: number, totalMs = 
   }
   return out;
 }
+
+/** The first line of the result panel: «Вам випало» after a draw, «Ваш настрій» after a click. */
+export function resultLine(
+  mood: string,
+  how: "draw" | "click",
+  ui: { drawResult: (name: string) => string; pickResult: (name: string) => string },
+): string {
+  return how === "draw" ? ui.drawResult(mood) : ui.pickResult(mood);
+}
