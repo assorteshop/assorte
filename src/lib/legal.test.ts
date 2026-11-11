@@ -28,9 +28,10 @@ describe("page texts promise nothing invented", () => {
     expect(all).not.toMatch(/гаранті[яї]\s+(термін\w*\s+)?\d+\s*(міс|рок|днів|дн)/i);
     expect(all).not.toMatch(/безкоштовн/i);
   });
-  it("states the legal 14 days and the 5% card discount", () => {
+  it("states the legal 14 days and no card discount", () => {
     expect(returnsText({})).toContain("**14 днів**");
-    expect(deliveryPaymentText({ onlineEnabled: true })).toContain("додаткова знижка 5%");
+    expect(all).not.toMatch(/знижк/i);
+    expect(deliveryPaymentText({ onlineEnabled: true })).not.toMatch(/знижк/i);
     expect(deliveryPaymentText({ onlineEnabled: false })).toContain("зʼявиться найближчим часом");
   });
   it("uses the contacts in the text only when they exist", () => {
