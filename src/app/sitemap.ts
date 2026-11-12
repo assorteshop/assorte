@@ -3,7 +3,7 @@ import { getPublishedArticleSlugs } from "@/lib/articles";
 import { categories } from "@/lib/categories";
 import { getAllProductSlugs, getZherebVariants } from "@/lib/products";
 import { zhereb } from "@/content/zhereb";
-import { zherebState } from "@/lib/zhereb";
+import { isZherebOn } from "@/lib/zhereb";
 import { getSiteUrl } from "@/lib/site";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -13,8 +13,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     getAllProductSlugs(),
     getZherebVariants(),
   ]);
-  // /zhereb is listed only while it sells («ЖИВИЙ»); in «СКОРО» it stays hidden.
-  const zherebLive = zherebState(zhereb.moods.items.map((m) => m.name), zherebVariants) === "live";
+  // /zhereb is listed only while «Жереб» is on sale (otherwise the page is a 404).
+  const zherebLive = isZherebOn(
+    zhereb.tiers.items.map((t) => t.id),
+    zhereb.moods.items.map((m) => m.name),
+    zherebVariants,
+  );
   return [
     { url: `${base}/` },
     { url: `${base}/catalog` },

@@ -6,6 +6,7 @@ import { notifyNewOrder } from "@/lib/notify";
 import { encodeContact } from "@/lib/order-message";
 import { supabase } from "@/lib/supabase";
 import { parseFirstTouchField } from "@/lib/analytics";
+import { isZherebArticle } from "@/lib/zhereb";
 
 export type OrderState =
   | { status: "idle" }
@@ -22,7 +23,10 @@ export async function placeOrder(_prev: OrderState, formData: FormData): Promise
   const city = text("city");
   const address = text("address");
   // The preferred way to reach the customer goes in front of the comment, so it shows in the admin and in Telegram.
-  const comment = encodeContact(text("messenger"), text("comment"));
+  // Item notes («Підказки для долі» of a «Жереб») follow the customer's own comment.
+  const comment = [encodeContact(text("messenger"), text("comment").slice(0, 1000)), text("notes").slice(0, 1800)]
+    .filter(Boolean)
+    .join("\n\n");
   const payment = text("payment") === "liqpay" ? "liqpay" : "cod";
   const delivery = text("delivery") === "ukrposhta" ? "ukrposhta" : "nova_poshta";
 
@@ -53,6 +57,17 @@ export async function placeOrder(_prev: OrderState, formData: FormData): Promise
   }
   if (payment === "liqpay" && !liqpayConfigured()) {
     return { status: "error", message: "Онлайн-оплата поки недоступна. Оберіть оплату при отриманні." };
+  }
+
+  // «Жереб» is sent only after payment, so it cannot be ordered with payment on delivery.
+  if (payment === "cod") {
+    const { data: rows } = await supabase
+      .from("products")
+      .select("article")
+      .in("slug", items.map((i) => i.slug));
+    if ((rows ?? []).some((r) => isZherebArticle(r.article))) {
+      return { status: "error", message: "«Жереб» можна оплатити лише карткою онлайн." };
+    }
   }
 
   const { data, error } = await supabase.rpc("create_order", {

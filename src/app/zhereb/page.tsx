@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { Footer } from "@/components/home/Footer";
 import { Header } from "@/components/home/Header";
 import { InstagramButton } from "@/components/zhereb/InstagramButton";
@@ -7,25 +8,23 @@ import { MOODS_ID, ZherebCta } from "@/components/zhereb/ZherebCta";
 import { zhereb as t } from "@/content/zhereb";
 import { getZherebVariants } from "@/lib/products";
 import { isIndexingEnabled } from "@/lib/site";
-import { matchMoods, zherebState } from "@/lib/zhereb";
+import { isZherebOn } from "@/lib/zhereb";
 
-// «Жереб» (vinyl surprise). Two states, decided only by the «Жереб» products in the database (article ZHEREB):
-// «СКОРО»  — no published product: no prices or cart, the main button leads to the Telegram channel, noindex;
-// «ЖИВИЙ» — published: price and moods come from the database, cart works, the page may be indexed.
-// The page is not in the menu or on the home page; the sitemap lists it only in «ЖИВИЙ».
+// «Жереб» (vinyl surprise) — the selling page. It lives only while «Жереб» products are published
+// (article ZHEREB, variants «<Рівень> · <Настрій>»); otherwise /zhereb is a 404. That is the launch switch.
+// Prices come only from the database. Not in the menu; the sitemap lists it only while it is on.
 const moodNames = t.moods.items.map((m) => m.name);
+const tierIds = t.tiers.items.map((x) => x.id);
 
 async function load() {
   const variants = await getZherebVariants();
-  return {
-    state: zherebState(moodNames, variants),
-    matched: matchMoods(moodNames, variants),
-  };
+  return { on: isZherebOn(tierIds, moodNames, variants), variants };
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { state } = await load();
-  const open = state === "live" && isIndexingEnabled();
+  const { on } = await load();
+  if (!on) return { title: "Сторінку не знайдено — ASSORTE", robots: { index: false, follow: false } };
+  const open = isIndexingEnabled();
   return {
     title: { absolute: t.seo.title },
     description: t.seo.description,
@@ -40,15 +39,14 @@ const wrap = "mx-auto max-w-[1180px] px-5 md:px-8";
 const h2 = "font-heading text-[30px] font-bold leading-[1.1] md:text-[40px]";
 
 export default async function ZherebPage() {
-  const { state, matched } = await load();
-  const live = state === "live";
-  const mainLabel = live ? t.hero.buttonLive : t.hero.buttonSoon;
+  const { on, variants } = await load();
+  if (!on) notFound();
 
   return (
     <>
       <Header overlay />
-      {/* In «ЖИВИЙ» phones get room at the bottom for the order bar. */}
-      <main className={`bg-ivory text-graphite ${live ? "pb-20 md:pb-0" : ""}`}>
+      {/* Phones get room at the bottom for the order bar. */}
+      <main className="bg-ivory pb-20 text-graphite md:pb-0">
         {/* 1. Hero: photo as background; words bottom-left on desktop, on the table (bottom third) on a phone. */}
         <section className="relative flex h-[100svh] min-h-[600px] items-end overflow-hidden bg-ivory text-white">
           <picture>
@@ -83,11 +81,7 @@ export default async function ZherebPage() {
                 {t.hero.lead}
               </p>
               <div className="mt-5 md:mt-7">
-                <ZherebCta
-                  state={state}
-                  label={mainLabel}
-                  waitlistUrl={t.waitlistUrl}
-                />
+                <ZherebCta label={t.hero.button} />
               </div>
             </div>
           </div>
@@ -108,10 +102,18 @@ export default async function ZherebPage() {
           </div>
         </section>
 
-        {/* 3. Як це працює */}
+        {/* Настрої → the order panel (level, hints, cart) */}
+        <section
+          id={MOODS_ID}
+          className={`${wrap} scroll-mt-20 pb-16 md:pb-24`}
+        >
+          <MoodPicker variants={variants} />
+        </section>
+
+        {/* After the moods and the order panel: Як це працює (five steps). */}
         <section className={`${wrap} pb-16 md:pb-24`}>
           <h2 className={h2}>{t.steps.title}</h2>
-          <ol className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <ol className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {t.steps.items.map((step, i) => (
               <li key={step} className="rounded-[28px] bg-white p-6">
                 <span className="font-heading text-[40px] font-bold leading-none text-red">
@@ -121,14 +123,6 @@ export default async function ZherebPage() {
               </li>
             ))}
           </ol>
-        </section>
-
-        {/* 4. Настрої = choosing the variant */}
-        <section
-          id={MOODS_ID}
-          className={`${wrap} scroll-mt-20 pb-16 md:pb-24`}
-        >
-          <MoodPicker state={state} variants={matched} />
         </section>
 
         {/* 5. Що всередині + 6. Як подарунок */}
@@ -205,7 +199,7 @@ export default async function ZherebPage() {
         <section className={`${wrap} pb-16 md:pb-24`}>
           <h2 className={h2}>{t.faq.title}</h2>
           <div className="mt-8 max-w-[820px] divide-y divide-line rounded-[28px] bg-white px-6 md:px-8">
-            {t.faq.items.map((f) => (
+            {t.faq.items.filter((f) => f.a).map((f) => (
               <details key={f.q} className="group py-5">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-heading text-[17px] font-bold [&::-webkit-details-marker]:hidden">
                   {f.q}
@@ -231,15 +225,8 @@ export default async function ZherebPage() {
               {t.final.text}
             </p>
             <div className="mt-8">
-              <ZherebCta
-                state={state}
-                label={mainLabel}
-                waitlistUrl={t.waitlistUrl}
-              />
+              <ZherebCta label={t.final.button} />
             </div>
-            {!live && (
-              <p className="mt-4 text-[12px] text-muted">{t.final.soonNote}</p>
-            )}
           </div>
         </section>
       </main>

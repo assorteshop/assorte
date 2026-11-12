@@ -74,6 +74,7 @@ export const zherebSlide: HeroSlide = {
   text: "zhereb",
 };
 
-// The first screen alternates two photos: the lemon at the eye, then «Жереб».
-// All other photos stay above; to show them all, set this to heroSlides.
-export const shownHeroSlides: HeroSlide[] = [heroSlides[0], zherebSlide];
+// The first screen shows the lemon at the eye; while «Жереб» is on sale it alternates with the «Жереб» photo
+// (the home page decides, so the slide never leads to a missing page). All other photos stay above.
+export const shownHeroSlides = (zherebOn: boolean): HeroSlide[] =>
+  zherebOn ? [heroSlides[0], zherebSlide] : [heroSlides[0]];
