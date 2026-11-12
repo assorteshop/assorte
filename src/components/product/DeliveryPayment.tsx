@@ -1,7 +1,9 @@
-import { Banknote, CreditCard, Mail, Truck } from "lucide-react";
+import { Banknote, CreditCard, Mail, Timer, Truck } from "lucide-react";
 
 // Delivery and payment under the price. The carrier chips use our own simple icons
 // (not the carriers' logos).
+const INSTALLMENT = "Миттєва розстрочка ПриватБанку";
+
 export function DeliveryPayment({ onlineEnabled }: { onlineEnabled: boolean }) {
   return (
     <div className="mt-8 space-y-6 border-t border-line pt-6">
@@ -35,6 +37,25 @@ export function DeliveryPayment({ onlineEnabled }: { onlineEnabled: boolean }) {
               {!onlineEnabled && <span className="text-muted"> (скоро)</span>}
             </span>
           </li>
+          {onlineEnabled && (
+            <li className="pl-9">
+              {/* Our own icon, not the bank's logo. The caption shows on hover, and on tap (focus) on phones. */}
+              <span
+                tabIndex={0}
+                role="img"
+                aria-label={INSTALLMENT}
+                className="group relative inline-grid size-9 cursor-help place-items-center rounded-full border border-line bg-white outline-none focus-visible:ring-2 focus-visible:ring-graphite/30"
+              >
+                <Timer size={18} strokeWidth={1.5} className="text-red" />
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute bottom-full left-0 mb-2 whitespace-nowrap rounded-[10px] bg-graphite px-3 py-2 text-[13px] text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100"
+                >
+                  {INSTALLMENT}
+                </span>
+              </span>
+            </li>
+          )}
         </ol>
       </div>
     </div>
