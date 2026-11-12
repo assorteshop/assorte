@@ -15,7 +15,7 @@ import { SiteShell } from "@/components/SiteShell";
 import { getCategory } from "@/lib/categories";
 import { formatUah } from "@/lib/format";
 import { getArticleForProduct } from "@/lib/articles";
-import { liqpayConfigured } from "@/lib/liqpay";
+import { currentPaymentOptions } from "@/lib/payments-server";
 import { getProductBySlug, getVariants } from "@/lib/products";
 import { richTextToHtml } from "@/lib/rich-text";
 import { getProductReviews } from "@/lib/reviews";
@@ -132,7 +132,7 @@ async function Content(props: PageProps<"/products/[slug]">) {
 
           <ReviewsSummaryLink count={reviews.count} average={reviews.average} />
 
-          <DeliveryPayment onlineEnabled={liqpayConfigured()} />
+          <DeliveryPayment pay={currentPaymentOptions()} />
 
           {guide && (
             <p className="mt-6 text-[14px]">

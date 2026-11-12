@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
 // Server-only client with the service role key. It bypasses Row Level Security,
-// so it is used in exactly one place: the signed LiqPay payment callback.
+// so it is used only in the signed payment callbacks (LiqPay and monobank).
 export function createSupabaseService() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;

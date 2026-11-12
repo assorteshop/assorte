@@ -6,6 +6,7 @@ import { placeOrder, type OrderState } from "@/app/actions/order";
 import { clearCart, useCart } from "@/lib/cart";
 import { formatUah } from "@/lib/format";
 import { CONTACT_CHANNELS } from "@/lib/order-message";
+import { INSTALLMENT_LOGO, INSTALLMENT_NAME, type PaymentOptions } from "@/lib/payments";
 import { NovaPoshtaPicker } from "./NovaPoshtaPicker";
 import { FIRST_TOUCH_KEY, parseStoredFirstTouch, track, trackPurchaseOnce } from "@/lib/analytics";
 
@@ -15,16 +16,18 @@ const field =
   "mt-1.5 h-12 w-full rounded-[4px] border border-line bg-white px-4 text-[14px]";
 const label = "block text-[13px]";
 
-export function CheckoutForm({ onlineEnabled }: { onlineEnabled: boolean }) {
+type Payment = "cod" | "mono" | "liqpay";
+
+export function CheckoutForm({ pay }: { pay: PaymentOptions }) {
   const { items, total } = useCart();
   const [state, action, pending] = useActionState(placeOrder, initial);
 
   const payForm = useRef<HTMLFormElement>(null);
   const [delivery, setDelivery] = useState<"nova_poshta" | "ukrposhta">("nova_poshta");
-  const [chosenPayment, setPayment] = useState<"cod" | "liqpay">("cod");
-  // «Жереб» is paid only by card on the site: without it in the cart the usual choice stays.
+  const [chosenPayment, setPayment] = useState<Payment>("cod");
+  // «Жереб» is paid only online (card or installment): without it in the cart the usual choice stays.
   const cardOnly = items.some((i) => i.cardOnly);
-  const payment = cardOnly ? "liqpay" : chosenPayment;
+  const payment: Payment = cardOnly && chosenPayment === "cod" ? (pay.card ?? "cod") : chosenPayment;
   // «Підказки для долі» and other item notes go into the order comment.
   const notes = items
     .filter((i) => i.note)
@@ -68,9 +71,21 @@ export function CheckoutForm({ onlineEnabled }: { onlineEnabled: boolean }) {
         orderedItems.current.map((i) => ({ item_id: i.slug, item_name: i.name, price: i.price_uah, quantity: i.qty })),
       );
     }
-    if (state.status === "ok" || state.status === "pay") clearCart();
+    if (state.status === "ok" || state.status === "pay" || state.status === "redirect") clearCart();
     if (state.status === "pay") payForm.current?.submit();
+    if (state.status === "redirect") window.location.assign(state.url);
   }, [state]);
+
+  if (state.status === "redirect") {
+    return (
+      <div className="max-w-[560px] py-10">
+        <p className="text-[17px]">Переходимо до оплати…</p>
+        <a href={state.url} className="mt-4 inline-flex rounded-[4px] bg-red px-7 py-4 text-[15px] font-medium text-white">
+          Перейти до оплати
+        </a>
+      </div>
+    );
+  }
 
   if (state.status === "pay") {
     return (
@@ -194,11 +209,21 @@ export function CheckoutForm({ onlineEnabled }: { onlineEnabled: boolean }) {
             </label>
           )}
           {cardOnly && <p className="px-1 text-[12px] text-muted">«Жереб» можна оплатити лише карткою онлайн.</p>}
-          {onlineEnabled ? (
-            <label className="flex items-center gap-3 rounded-[4px] bg-white px-4 py-3 text-[14px]">
-              <input type="radio" name="payment" value="liqpay" checked={payment === "liqpay"} onChange={() => setPayment("liqpay")} className="accent-[#b60016]" />
-              Оплата карткою на сайті
-            </label>
+          {pay.card ? (
+            <>
+              <label className="flex items-center gap-3 rounded-[4px] bg-white px-4 py-3 text-[14px]">
+                <input type="radio" name="payment" value={pay.card} checked={payment === pay.card} onChange={() => setPayment(pay.card!)} className="accent-[#b60016]" />
+                Оплата карткою на сайті
+              </label>
+              {pay.installmentSeparate && (
+                <label className="flex items-center gap-3 rounded-[4px] bg-white px-4 py-3 text-[14px]">
+                  <input type="radio" name="payment" value="liqpay" checked={payment === "liqpay"} onChange={() => setPayment("liqpay")} className="accent-[#b60016]" />
+                  {/* eslint-disable-next-line @next/next/no-img-element -- a tiny SVG, nothing to optimise */}
+                  <img src={INSTALLMENT_LOGO} alt="" width={24} height={24} className="size-6" />
+                  {INSTALLMENT_NAME}
+                </label>
+              )}
+            </>
           ) : (
             <p className="px-1 text-[12px] text-muted">Оплата карткою онлайн буде додана найближчим часом.</p>
           )}

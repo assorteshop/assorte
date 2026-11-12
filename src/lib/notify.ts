@@ -11,7 +11,7 @@ export type NewOrder = {
   address: string;
   comment: string;
   items: { slug: string; qty: number }[];
-  payment: "cod" | "liqpay";
+  payment: "cod" | "mono" | "liqpay";
   delivery: "nova_poshta" | "ukrposhta";
 };
 
@@ -110,7 +110,11 @@ export async function notifyNewOrder(order: NewOrder) {
   const carrier = order.delivery === "ukrposhta" ? "Укрпошта" : "Нова пошта";
   const link = adminUrl();
   const paymentLabel =
-    order.payment === "liqpay" ? "онлайн-оплата LiqPay (очікує оплати)" : "оплата при отриманні";
+    order.payment === "mono"
+      ? "оплата карткою monobank (очікує оплати)"
+      : order.payment === "liqpay"
+        ? "онлайн-оплата LiqPay (очікує оплати)"
+        : "оплата при отриманні";
 
   const itemsText = lines.map((l) => `• ${l.name} × ${l.qty} — ${formatUah(l.sum)}`).join("\n");
   const plain = [

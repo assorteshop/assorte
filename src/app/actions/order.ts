@@ -2,6 +2,7 @@
 
 import { after } from "next/server";
 import { buildCheckout, liqpayConfigured, siteUrl } from "@/lib/liqpay";
+import { createInvoice, monoConfigured } from "@/lib/mono";
 import { notifyNewOrder } from "@/lib/notify";
 import { encodeContact } from "@/lib/order-message";
 import { supabase } from "@/lib/supabase";
@@ -12,7 +13,8 @@ export type OrderState =
   | { status: "idle" }
   | { status: "error"; message: string }
   | { status: "ok"; number: number; total: number | null }
-  | { status: "pay"; url: string; data: string; signature: string };
+  | { status: "pay"; url: string; data: string; signature: string }
+  | { status: "redirect"; url: string };
 
 export async function placeOrder(_prev: OrderState, formData: FormData): Promise<OrderState> {
   const text = (name: string) => String(formData.get(name) ?? "").trim();
@@ -27,7 +29,9 @@ export async function placeOrder(_prev: OrderState, formData: FormData): Promise
   const comment = [encodeContact(text("messenger"), text("comment").slice(0, 1000)), text("notes").slice(0, 1800)]
     .filter(Boolean)
     .join("\n\n");
-  const payment = text("payment") === "liqpay" ? "liqpay" : "cod";
+  // cod: on delivery; mono: card on the site (monobank); liqpay: «Миттєва розстрочка ПриватБанку» (or card when mono is off).
+  const chosen = text("payment");
+  const payment = chosen === "mono" || chosen === "liqpay" ? chosen : "cod";
   const delivery = text("delivery") === "ukrposhta" ? "ukrposhta" : "nova_poshta";
 
   if (!name || !city || !address) {
@@ -55,8 +59,8 @@ export async function placeOrder(_prev: OrderState, formData: FormData): Promise
   if (!supabase) {
     return { status: "error", message: "Оформлення замовлень тимчасово недоступне." };
   }
-  if (payment === "liqpay" && !liqpayConfigured()) {
-    return { status: "error", message: "Онлайн-оплата поки недоступна. Оберіть оплату при отриманні." };
+  if ((payment === "liqpay" && !liqpayConfigured()) || (payment === "mono" && !monoConfigured())) {
+    return { status: "error", message: "Цей спосіб оплати зараз недоступний. Оберіть інший." };
   }
 
   // «Жереб» is sent only after payment, so it cannot be ordered with payment on delivery.
@@ -115,11 +119,22 @@ export async function placeOrder(_prev: OrderState, formData: FormData): Promise
     ),
   );
 
-  if (payment === "liqpay") {
-    if (typeof created.total !== "number") {
-      return { status: "error", message: "Не вдалося підготувати оплату. Оберіть оплату при отриманні." };
+  if (payment !== "cod") {
+    const payError = {
+      status: "error" as const,
+      message: `Замовлення №${number} збережено, але не вдалося відкрити сторінку оплати. Ми зв’яжемося з вами.`,
+    };
+    if (typeof created.total !== "number") return payError;
+    if (payment === "liqpay") {
+      return { status: "pay", ...buildCheckout({ orderNumber: number, amount: created.total, siteUrl: siteUrl() }) };
     }
-    return { status: "pay", ...buildCheckout({ orderNumber: number, amount: created.total, siteUrl: siteUrl() }) };
+    try {
+      const { pageUrl } = await createInvoice({ orderNumber: number, amount: created.total, siteUrl: siteUrl() });
+      return { status: "redirect", url: pageUrl };
+    } catch (e) {
+      console.error("[assorte] mono invoice failed:", e);
+      return payError;
+    }
   }
   return { status: "ok", number, total };
 }

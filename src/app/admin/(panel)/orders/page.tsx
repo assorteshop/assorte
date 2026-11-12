@@ -69,8 +69,12 @@ export default async function AdminOrders() {
                 Джерело: {sources.get(o.id) ?? "невідомо"}
               </p>
               <p className="mt-1 text-[13px]">
-                {o.payment_method === "liqpay" ? "Онлайн-оплата (LiqPay): " : "Оплата при отриманні"}
-                {o.payment_method === "liqpay" && (
+                {o.payment_method === "mono"
+                  ? "Оплата карткою (monobank): "
+                  : o.payment_method === "liqpay"
+                    ? "Онлайн-оплата (LiqPay): "
+                    : "Оплата при отриманні"}
+                {o.payment_method !== "cod" && (
                   <span className={o.payment_status === "paid" ? "font-medium text-[#1f6b34]" : "font-medium text-red"}>
                     {o.payment_status === "paid" ? "оплачено" : o.payment_status === "failed" ? "помилка оплати" : "очікує оплати"}
                   </span>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal/LegalPage";
 import { deliveryPaymentText } from "@/lib/legal";
-import { liqpayConfigured } from "@/lib/liqpay";
+import { currentPaymentOptions } from "@/lib/payments-server";
 import { getSettings } from "@/lib/settings";
 
 export const metadata: Metadata = {
@@ -17,7 +17,7 @@ export default async function DeliveryAndPaymentPage() {
       eyebrow="Умови"
       title="Доставка і оплата"
       intro="Нова пошта та Укрпошта по всій Україні. Оплата після отримання або карткою на сайті."
-      body={deliveryPaymentText({ onlineEnabled: liqpayConfigured(), settings })}
+      body={deliveryPaymentText({ onlineEnabled: currentPaymentOptions().card !== null, settings })}
     />
   );
 }
