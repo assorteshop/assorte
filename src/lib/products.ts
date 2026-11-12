@@ -318,16 +318,17 @@ export async function getAllProductSlugs(): Promise<string[]> {
 
 // Only on this computer without the database, and only when started with ZHEREB_DEMO=1:
 // sample «Жереб» variants to see the «ЖИВИЙ» state. Never used on the live site (it has the database).
-const zherebDemo: ZherebVariant[] = [
-  "Дощова неділя",
-  "Нічна дорога",
-  "Гучно на кухні",
-  "Перемотка",
-  "Своє",
-  "Чистий жереб",
-].map((label, i) => ({ slug: `zhereb-demo-${i + 1}`, name: "Жереб", variant_label: label, price_uah: 1000, image_url: null }));
+const zherebDemo: ZherebVariant[] = (["Знахідка", "Нова"] as const).flatMap((tier, t) =>
+  ["Дощова неділя", "Нічна дорога", "Гучно на кухні", "Перемотка", "Своє", "Чистий жереб"].map((mood, i) => ({
+    slug: `zhereb-demo-${t + 1}-${i + 1}`,
+    name: "Жереб",
+    variant_label: `${tier} · ${mood}`,
+    price_uah: tier === "Знахідка" ? 1000 : 1500,
+    image_url: null,
+  })),
+);
 
-/** Published «Жереб» products (article ZHEREB), one per mood. Empty list = the page is «СКОРО». */
+/** Published «Жереб» products (article ZHEREB), one per level × mood. None = /zhereb is a 404. */
 export async function getZherebVariants(): Promise<ZherebVariant[]> {
   "use cache";
   lifetime();

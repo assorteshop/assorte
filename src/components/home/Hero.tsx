@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Pause, Play } from "lucide-react";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Heart } from "@/components/brand/Heart";
-import { shownHeroSlides as slides } from "@/lib/hero-slides";
+import type { HeroSlide } from "@/lib/hero-slides";
 
 const SLIDE_MS = 6500;
 
@@ -18,7 +18,7 @@ const prefersStill = () => window.matchMedia(motionQuery).matches;
 
 // Full-screen photos of Alex that slowly change, with the brand line over them.
 // People who turned animation off in their system see the first photo only, without movement.
-export function Hero() {
+export function Hero({ slides }: { slides: HeroSlide[] }) {
   const still = useSyncExternalStore(subscribeMotion, prefersStill, () => false);
   const [active, setActive] = useState(0);
   // Photos are added to the page one step ahead of the one on screen, so the first load stays light.
@@ -40,7 +40,7 @@ export function Hero() {
       });
     }, SLIDE_MS);
     return () => clearInterval(t);
-  }, [still, paused]);
+  }, [still, paused, slides.length]);
 
   const hasZhereb = slides.some((s) => s.text === "zhereb");
   const onZhereb = slides[active]?.text === "zhereb";

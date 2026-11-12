@@ -8,6 +8,10 @@ export type CartItem = {
   price_uah: number;
   image: string | null;
   qty: number;
+  /** Extra lines for the order comment, for example «Підказки для долі» of a «Жереб». */
+  note?: string;
+  /** This item can be paid only by card on the site («Жереб»). */
+  cardOnly?: boolean;
 };
 
 const KEY = "assorte-cart-v1";
@@ -26,7 +30,9 @@ const isItem = (x: unknown): x is CartItem => {
     typeof i.name === "string" &&
     Number.isFinite(i.price_uah) &&
     Number.isInteger(i.qty) &&
-    i.qty > 0
+    i.qty > 0 &&
+    (i.note === undefined || typeof i.note === "string") &&
+    (i.cardOnly === undefined || typeof i.cardOnly === "boolean")
   );
 };
 
@@ -80,7 +86,10 @@ export function addToCart(item: Omit<CartItem, "qty">, qty = 1) {
   commit(
     existing
       ? items.map((i) =>
-          i.slug === item.slug ? { ...i, qty: Math.min(i.qty + qty, MAX_QTY) } : i,
+          // The same «Жереб» added again keeps the latest hints.
+          i.slug === item.slug
+            ? { ...i, qty: Math.min(i.qty + qty, MAX_QTY), ...(item.note !== undefined ? { note: item.note } : {}) }
+            : i,
         )
       : [...items, { ...item, qty: Math.min(qty, MAX_QTY) }],
   );

@@ -21,7 +21,15 @@ export function CheckoutForm({ onlineEnabled }: { onlineEnabled: boolean }) {
 
   const payForm = useRef<HTMLFormElement>(null);
   const [delivery, setDelivery] = useState<"nova_poshta" | "ukrposhta">("nova_poshta");
-  const [payment, setPayment] = useState<"cod" | "liqpay">("cod");
+  const [chosenPayment, setPayment] = useState<"cod" | "liqpay">("cod");
+  // «Жереб» is paid only by card on the site: without it in the cart the usual choice stays.
+  const cardOnly = items.some((i) => i.cardOnly);
+  const payment = cardOnly ? "liqpay" : chosenPayment;
+  // «Підказки для долі» and other item notes go into the order comment.
+  const notes = items
+    .filter((i) => i.note)
+    .map((i) => `${i.name}:\n${i.note}`)
+    .join("\n\n");
 
   // Where the customer first came from (utm, referrer or direct), saved with the order.
   const [firstTouch] = useState(() => {
@@ -119,6 +127,7 @@ export function CheckoutForm({ onlineEnabled }: { onlineEnabled: boolean }) {
         value={JSON.stringify(items.map((i) => ({ slug: i.slug, qty: i.qty })))}
       />
       <input type="hidden" name="first_touch" value={firstTouch} />
+      <input type="hidden" name="notes" value={notes} />
 
       <div className="space-y-8">
         <fieldset className="space-y-4">
@@ -178,10 +187,13 @@ export function CheckoutForm({ onlineEnabled }: { onlineEnabled: boolean }) {
 
         <fieldset className="space-y-3">
           <legend className="text-[18px]">Оплата</legend>
-          <label className="flex items-center gap-3 rounded-[4px] bg-white px-4 py-3 text-[14px]">
-            <input type="radio" name="payment" value="cod" checked={payment === "cod"} onChange={() => setPayment("cod")} className="accent-[#b60016]" />
-            Оплата при отриманні
-          </label>
+          {!cardOnly && (
+            <label className="flex items-center gap-3 rounded-[4px] bg-white px-4 py-3 text-[14px]">
+              <input type="radio" name="payment" value="cod" checked={payment === "cod"} onChange={() => setPayment("cod")} className="accent-[#b60016]" />
+              Оплата при отриманні
+            </label>
+          )}
+          {cardOnly && <p className="px-1 text-[12px] text-muted">«Жереб» можна оплатити лише карткою онлайн.</p>}
           {onlineEnabled ? (
             <label className="flex items-center gap-3 rounded-[4px] bg-white px-4 py-3 text-[14px]">
               <input type="radio" name="payment" value="liqpay" checked={payment === "liqpay"} onChange={() => setPayment("liqpay")} className="accent-[#b60016]" />
