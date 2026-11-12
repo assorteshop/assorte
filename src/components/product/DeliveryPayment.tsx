@@ -1,4 +1,4 @@
-import { Banknote, CreditCard, Mail, Timer, Truck } from "lucide-react";
+import { Banknote, CreditCard, Mail, Truck } from "lucide-react";
 
 // Delivery and payment under the price. The carrier chips use our own simple icons
 // (not the carriers' logos).
@@ -39,14 +39,15 @@ export function DeliveryPayment({ onlineEnabled }: { onlineEnabled: boolean }) {
           </li>
           {onlineEnabled && (
             <li className="pl-9">
-              {/* Our own icon, not the bank's logo. The caption shows on hover, and on tap (focus) on phones. */}
+              {/* PrivatBank's official «Миттєва розстрочка» logo (from their merchant branding kit). The caption shows on hover, and on tap (focus) on phones. */}
               <span
                 tabIndex={0}
                 role="img"
                 aria-label={INSTALLMENT}
-                className="group relative inline-grid size-9 cursor-help place-items-center rounded-full border border-line bg-white outline-none focus-visible:ring-2 focus-visible:ring-graphite/30"
+                className="group relative inline-block size-9 cursor-help rounded-full outline-none focus-visible:ring-2 focus-visible:ring-graphite/30"
               >
-                <Timer size={18} strokeWidth={1.5} className="text-red" />
+                {/* eslint-disable-next-line @next/next/no-img-element -- a tiny SVG, nothing to optimise */}
+                <img src="/payments/miteva-rozstrochka.svg" alt="" width={36} height={36} className="size-9" />
                 <span
                   aria-hidden
                   className="pointer-events-none absolute bottom-full left-0 mb-2 whitespace-nowrap rounded-[10px] bg-graphite px-3 py-2 text-[13px] text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100"
