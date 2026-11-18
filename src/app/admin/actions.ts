@@ -123,6 +123,7 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
     image_url: images[0] ?? null,
     is_published: formData.get("is_published") === "on",
     is_featured: formData.get("is_featured") === "on",
+    mono_parts: formData.get("mono_parts") === "on",
     sort_order: sortOrder,
   };
 

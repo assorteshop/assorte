@@ -18,13 +18,15 @@ export type Product = {
   article: string | null;
   variant_label: string | null;
   specs: { name: string; value: string }[];
+  /** «З розтермінуванням від monobank»: the card shows the «Покупка частинами» label. */
+  mono_parts?: boolean | null;
 };
 
 // A catalogue card: all products sharing one article collapse into a single card.
 export type ProductCardData = Product & { variantCount: number; priceFrom: boolean };
 
 const columns =
-  "id, slug, name, tagline, description, price_uah, badge, image_url, images, category, colors, article, variant_label, specs";
+  "id, slug, name, tagline, description, price_uah, badge, image_url, images, category, colors, article, variant_label, specs, mono_parts";
 
 // Shown only while Supabase is not configured, so the layout can be reviewed.
 // Names, taglines and prices come from the approved homepage design.
@@ -108,6 +110,8 @@ export function collapseVariants(products: Product[]): ProductCardData[] {
     const rep = list.reduce((a, b) => (b.price_uah < a.price_uah ? b : a));
     return {
       ...rep,
+      // One variant sold in parts is enough for the label on the shared card.
+      mono_parts: list.some((p) => p.mono_parts),
       variantCount: list.length,
       priceFrom: list.some((p) => p.price_uah !== rep.price_uah),
     };

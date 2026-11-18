@@ -24,6 +24,7 @@ type Product = {
   image_url: string | null;
   is_published: boolean;
   is_featured: boolean;
+  mono_parts?: boolean | null;
   sort_order: number;
 };
 
@@ -289,6 +290,15 @@ export function ProductForm({ product, prefill }: { product?: Product; prefill?:
         <label className="flex items-center gap-3 text-[14px]">
           <input type="checkbox" name="is_featured" defaultChecked={product?.is_featured ?? false} className="size-4 accent-[#b60016]" />
           Показувати у слайдері «Популярні товари» на головній
+        </label>
+        <label className="flex items-start gap-3 text-[14px]">
+          <input type="checkbox" name="mono_parts" defaultChecked={product?.mono_parts ?? false} className="mt-0.5 size-4 accent-[#b60016]" />
+          <span>
+            З розтермінуванням від monobank
+            <span className="block text-[12px] text-muted">
+              На картці товару з’явиться значок «Покупка частинами». Для товарів дорожче 3000 грн.
+            </span>
+          </span>
         </label>
       </fieldset>
 

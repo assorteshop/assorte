@@ -22,6 +22,18 @@ export function ProductCard({ product }: { product: ProductCardData }) {
             className="object-cover transition-transform duration-500 group-hover/card:scale-[1.04]"
           />
         )}
+        {product.mono_parts && (
+          // monobank's official «Покупка частинами» label.
+          // eslint-disable-next-line @next/next/no-img-element -- a tiny image, nothing to optimise
+          <img
+            src="/payments/pokupka-chastynamy.png"
+            alt="Покупка частинами monobank"
+            title="Покупка частинами monobank"
+            width={52}
+            height={52}
+            className="absolute right-4 top-4 size-[52px] drop-shadow-sm"
+          />
+        )}
         {product.badge && (
           <span className="absolute left-5 top-5 rounded-full bg-red px-3.5 py-1.5 text-[11px] font-medium text-white">
             {product.badge}
