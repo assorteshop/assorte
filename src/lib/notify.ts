@@ -11,7 +11,7 @@ export type NewOrder = {
   address: string;
   comment: string;
   items: { slug: string; qty: number }[];
-  payment: "cod" | "mono" | "liqpay";
+  payment: "cod" | "mono" | "mono_parts" | "liqpay";
   delivery: "nova_poshta" | "ukrposhta";
 };
 
@@ -22,7 +22,7 @@ const adminUrl = () =>
   `${getSiteUrl()}/admin/orders`;
 
 // Names and prices come from the products table, the same source the order itself uses.
-async function describeItems(items: NewOrder["items"]) {
+export async function describeItems(items: NewOrder["items"]) {
   const { data } = supabase
     ? await supabase
         .from("products")
@@ -112,6 +112,8 @@ export async function notifyNewOrder(order: NewOrder) {
   const paymentLabel =
     order.payment === "mono"
       ? "оплата карткою monobank (очікує оплати)"
+      : order.payment === "mono_parts"
+        ? "покупка частинами monobank (очікує підтвердження клієнтом)"
       : order.payment === "liqpay"
         ? "онлайн-оплата LiqPay (очікує оплати)"
         : "оплата при отриманні";

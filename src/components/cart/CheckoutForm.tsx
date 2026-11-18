@@ -6,7 +6,7 @@ import { placeOrder, type OrderState } from "@/app/actions/order";
 import { clearCart, useCart } from "@/lib/cart";
 import { formatUah } from "@/lib/format";
 import { CONTACT_CHANNELS } from "@/lib/order-message";
-import { INSTALLMENT_LOGO, INSTALLMENT_NAME, type PaymentOptions } from "@/lib/payments";
+import { INSTALLMENT_LOGO, INSTALLMENT_NAME, PARTS_NAME, type PaymentOptions } from "@/lib/payments";
 import { NovaPoshtaPicker } from "./NovaPoshtaPicker";
 import { FIRST_TOUCH_KEY, parseStoredFirstTouch, track, trackPurchaseOnce } from "@/lib/analytics";
 
@@ -16,7 +16,7 @@ const field =
   "mt-1.5 h-12 w-full rounded-[4px] border border-line bg-white px-4 text-[14px]";
 const label = "block text-[13px]";
 
-type Payment = "cod" | "mono" | "liqpay";
+type Payment = "cod" | "mono" | "mono_parts" | "liqpay";
 
 export function CheckoutForm({ pay }: { pay: PaymentOptions }) {
   const { items, total } = useCart();
@@ -71,10 +71,30 @@ export function CheckoutForm({ pay }: { pay: PaymentOptions }) {
         orderedItems.current.map((i) => ({ item_id: i.slug, item_name: i.name, price: i.price_uah, quantity: i.qty })),
       );
     }
-    if (state.status === "ok" || state.status === "pay" || state.status === "redirect") clearCart();
+    if (state.status === "ok" || state.status === "pay" || state.status === "redirect" || state.status === "parts") clearCart();
     if (state.status === "pay") payForm.current?.submit();
     if (state.status === "redirect") window.location.assign(state.url);
   }, [state]);
+
+  if (state.status === "parts") {
+    return (
+      <div className="max-w-[560px] py-10">
+        <p className="text-[11px] font-medium uppercase tracking-[0.3em] text-red">Майже готово</p>
+        <h1 className="mt-2 text-[32px] md:text-[40px]">Підтвердіть заявку в застосунку monobank</h1>
+        <p className="mt-4 text-[15px] leading-relaxed text-muted">
+          Замовлення №{state.number} збережено. Ми надіслали заявку на покупку частинами у ваш застосунок
+          monobank: відкрийте його, оберіть кількість платежів і підтвердіть протягом 15 хвилин. Щойно банк
+          підтвердить, ми зв’яжемося з вами щодо доставки.
+        </p>
+        <Link
+          href="/catalog"
+          className="mt-8 inline-flex rounded-[4px] bg-red px-7 py-4 text-[15px] font-medium text-white"
+        >
+          Повернутися до каталогу
+        </Link>
+      </div>
+    );
+  }
 
   if (state.status === "redirect") {
     return (
@@ -226,6 +246,15 @@ export function CheckoutForm({ pay }: { pay: PaymentOptions }) {
             </>
           ) : (
             <p className="px-1 text-[12px] text-muted">Оплата карткою онлайн буде додана найближчим часом.</p>
+          )}
+          {pay.parts && (
+            <label className="flex items-start gap-3 rounded-[4px] bg-white px-4 py-3 text-[14px]">
+              <input type="radio" name="payment" value="mono_parts" checked={payment === "mono_parts"} onChange={() => setPayment("mono_parts")} className="mt-0.5 accent-[#b60016]" />
+              <span>
+                {PARTS_NAME}
+                <span className="block text-[12px] text-muted">Для клієнтів monobank: заявка прийде в застосунок на номер телефону вище.</span>
+              </span>
+            </label>
           )}
         </fieldset>
 

@@ -8,15 +8,20 @@ export type PaymentOptions = {
   installment: boolean;
   /** Installment is a separate choice at checkout (when the card itself goes through monobank). */
   installmentSeparate: boolean;
+  /** «Покупка частинами» monobank (for monobank customers). */
+  parts: boolean;
 };
 
-export function paymentOptions(mono: boolean, liqpay: boolean): PaymentOptions {
+export function paymentOptions(mono: boolean, liqpay: boolean, parts = false): PaymentOptions {
   return {
     card: mono ? "mono" : liqpay ? "liqpay" : null,
     installment: liqpay,
     installmentSeparate: mono && liqpay,
+    parts,
   };
 }
+
+export const PARTS_NAME = "Покупка частинами monobank";
 
 export const INSTALLMENT_NAME = "Миттєва розстрочка ПриватБанку";
 export const INSTALLMENT_LOGO = "/payments/miteva-rozstrochka.svg";

@@ -71,6 +71,8 @@ export default async function AdminOrders() {
               <p className="mt-1 text-[13px]">
                 {o.payment_method === "mono"
                   ? "Оплата карткою (monobank): "
+                  : o.payment_method === "mono_parts"
+                    ? "Покупка частинами (monobank): "
                   : o.payment_method === "liqpay"
                     ? "Онлайн-оплата (LiqPay): "
                     : "Оплата при отриманні"}

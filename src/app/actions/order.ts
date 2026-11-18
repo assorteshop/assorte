@@ -3,7 +3,9 @@
 import { after } from "next/server";
 import { buildCheckout, liqpayConfigured, siteUrl } from "@/lib/liqpay";
 import { createInvoice, monoConfigured } from "@/lib/mono";
-import { notifyNewOrder } from "@/lib/notify";
+import { createPartsOrder, isMonoClient, partsConfigured, toMonoPhone } from "@/lib/mono-parts";
+import { createSupabaseService } from "@/lib/supabase-admin";
+import { describeItems, notifyNewOrder } from "@/lib/notify";
 import { encodeContact } from "@/lib/order-message";
 import { supabase } from "@/lib/supabase";
 import { parseFirstTouchField } from "@/lib/analytics";
@@ -14,7 +16,8 @@ export type OrderState =
   | { status: "error"; message: string }
   | { status: "ok"; number: number; total: number | null }
   | { status: "pay"; url: string; data: string; signature: string }
-  | { status: "redirect"; url: string };
+  | { status: "redirect"; url: string }
+  | { status: "parts"; number: number };
 
 export async function placeOrder(_prev: OrderState, formData: FormData): Promise<OrderState> {
   const text = (name: string) => String(formData.get(name) ?? "").trim();
@@ -29,9 +32,10 @@ export async function placeOrder(_prev: OrderState, formData: FormData): Promise
   const comment = [encodeContact(text("messenger"), text("comment").slice(0, 1000)), text("notes").slice(0, 1800)]
     .filter(Boolean)
     .join("\n\n");
-  // cod: on delivery; mono: card on the site (monobank); liqpay: «Миттєва розстрочка ПриватБанку» (or card when mono is off).
+  // cod: on delivery; mono: card on the site (monobank); mono_parts: «Покупка частинами» monobank;
+  // liqpay: «Миттєва розстрочка ПриватБанку» (or card when mono is off).
   const chosen = text("payment");
-  const payment = chosen === "mono" || chosen === "liqpay" ? chosen : "cod";
+  const payment = chosen === "mono" || chosen === "mono_parts" || chosen === "liqpay" ? chosen : "cod";
   const delivery = text("delivery") === "ukrposhta" ? "ukrposhta" : "nova_poshta";
 
   if (!name || !city || !address) {
@@ -59,8 +63,33 @@ export async function placeOrder(_prev: OrderState, formData: FormData): Promise
   if (!supabase) {
     return { status: "error", message: "Оформлення замовлень тимчасово недоступне." };
   }
-  if ((payment === "liqpay" && !liqpayConfigured()) || (payment === "mono" && !monoConfigured())) {
+  if (
+    (payment === "liqpay" && !liqpayConfigured()) ||
+    (payment === "mono" && !monoConfigured()) ||
+    (payment === "mono_parts" && !partsConfigured())
+  ) {
     return { status: "error", message: "Цей спосіб оплати зараз недоступний. Оберіть інший." };
+  }
+
+  // «Покупка частинами» works only for monobank customers: check before the order is saved.
+  const monoPhone = payment === "mono_parts" ? toMonoPhone(phone) : null;
+  if (payment === "mono_parts") {
+    if (!monoPhone) {
+      return { status: "error", message: "Для покупки частинами потрібен український номер телефону." };
+    }
+    let found = false;
+    try {
+      found = await isMonoClient(monoPhone);
+    } catch (e) {
+      console.error("[assorte] mono parts validate failed:", e);
+      return { status: "error", message: "Покупка частинами зараз недоступна. Оберіть інший спосіб оплати." };
+    }
+    if (!found) {
+      return {
+        status: "error",
+        message: "Покупка частинами доступна лише клієнтам monobank. Перевірте номер або оберіть інший спосіб оплати.",
+      };
+    }
   }
 
   // «Жереб» is sent only after payment, so it cannot be ordered with payment on delivery.
@@ -125,6 +154,28 @@ export async function placeOrder(_prev: OrderState, formData: FormData): Promise
       message: `Замовлення №${number} збережено, але не вдалося відкрити сторінку оплати. Ми зв’яжемося з вами.`,
     };
     if (typeof created.total !== "number") return payError;
+    if (payment === "mono_parts") {
+      try {
+        const { lines } = await describeItems(items);
+        const monoId = await createPartsOrder({
+          orderNumber: number,
+          phone: monoPhone!,
+          total: created.total,
+          lines: lines.map((l) => ({ name: l.name, qty: l.qty, price: l.sum / l.qty })),
+          siteUrl: siteUrl(),
+        });
+        // monobank's callback names only its own id; remember it to find this order.
+        const { error: refError } = await createSupabaseService()
+          .from("orders")
+          .update({ payment_ref: monoId })
+          .eq("number", number);
+        if (refError) throw new Error(refError.message);
+        return { status: "parts", number };
+      } catch (e) {
+        console.error("[assorte] mono parts order failed:", e);
+        return payError;
+      }
+    }
     if (payment === "liqpay") {
       return { status: "pay", ...buildCheckout({ orderNumber: number, amount: created.total, siteUrl: siteUrl() }) };
     }
