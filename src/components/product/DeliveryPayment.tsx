@@ -52,7 +52,9 @@ export function DeliveryPayment({ pay }: { pay: PaymentOptions }) {
           )}
           {/* Shown always: monobank asked for «Покупка частинами» to be visible on the site. */}
           <li className="flex items-center gap-3 pl-9">
-            <span aria-hidden className="size-7 shrink-0" />
+            {/* monobank's official «Покупка частинами» label (from the bank). */}
+            {/* eslint-disable-next-line @next/next/no-img-element -- a tiny image, nothing to optimise */}
+            <img src="/payments/pokupka-chastynamy.png" alt="" width={28} height={28} className="size-7 shrink-0" />
             <span>
               {PARTS_NAME} <span className="text-muted">(без переплат і комісій)</span>
             </span>
