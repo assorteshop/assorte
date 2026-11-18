@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { deliveryPaymentText, offerText, privacyText, returnsText, sellerLines } from "./legal";
+import { MONO_PARTS_LEGAL, deliveryPaymentText, offerText, privacyText, returnsText, sellerLines } from "./legal";
 import { parseSettingsForm } from "./settings-schema";
 
 describe("seller details", () => {
@@ -21,7 +21,9 @@ describe("seller details", () => {
 });
 
 describe("page texts promise nothing invented", () => {
-  const all = [deliveryPaymentText({ onlineEnabled: true }), deliveryPaymentText({ onlineEnabled: false }), returnsText({}), offerText({}), privacyText({})].join("\n");
+  // The bank's own «Покупка частинами» text (with its amounts) is checked separately below.
+  const ours = (t: string) => t.replace(MONO_PARTS_LEGAL, "");
+  const all = [ours(deliveryPaymentText({ onlineEnabled: true })), ours(deliveryPaymentText({ onlineEnabled: false })), returnsText({}), offerText({}), privacyText({})].join("\n");
   it("has no delivery price, no delivery time in days or hours, no warranty period", () => {
     expect(all).not.toMatch(/\d+\s*(грн|₴)/);
     expect(all).not.toMatch(/протягом\s+\d+\s*(годин|діб|робочих)/i);
@@ -33,6 +35,12 @@ describe("page texts promise nothing invented", () => {
     expect(all).not.toMatch(/знижк/i);
     expect(deliveryPaymentText({ onlineEnabled: true })).not.toMatch(/знижк/i);
     expect(deliveryPaymentText({ onlineEnabled: false })).toContain("зʼявиться найближчим часом");
+  });
+  it("carries monobank's «Покупка частинами» text unchanged", () => {
+    const t = deliveryPaymentText({ onlineEnabled: true });
+    expect(t).toContain(MONO_PARTS_LEGAL);
+    expect(MONO_PARTS_LEGAL).toContain("АТ «УНІВЕРСАЛ БАНК» ліцензія НБУ No92 від 20.01.1994, номер у держреєстрі банків No 226.");
+    expect(t).toContain("Без переплат і комісій для покупця");
   });
   it("uses the contacts in the text only when they exist", () => {
     expect(returnsText({ contact_phone: "+380501112233" })).toContain("за телефоном +380501112233");
