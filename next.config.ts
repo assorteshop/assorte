@@ -31,6 +31,9 @@ const nextConfig: NextConfig = {
       : [{ source: "/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }];
   },
   images: {
+    // Temporary: photos go through wsrv.nl, see src/lib/image-loader.ts (back to Vercel on Pro).
+    loader: "custom",
+    loaderFile: "./src/lib/image-loader.ts",
     remotePatterns: supabaseHost
       ? [{ protocol: "https", hostname: supabaseHost, pathname: "/storage/v1/object/public/**" }]
       : [],
