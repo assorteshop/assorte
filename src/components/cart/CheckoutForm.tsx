@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { placeOrder, type OrderState } from "@/app/actions/order";
 import { clearCart, useCart } from "@/lib/cart";
 import { formatUah } from "@/lib/format";
@@ -18,13 +18,23 @@ const label = "block text-[13px]";
 
 type Payment = "cod" | "mono" | "mono_parts" | "liqpay";
 
+const noSubscribe = () => () => {};
+
 export function CheckoutForm({ pay }: { pay: PaymentOptions }) {
   const { items, total } = useCart();
   const [state, action, pending] = useActionState(placeOrder, initial);
 
   const payForm = useRef<HTMLFormElement>(null);
   const [delivery, setDelivery] = useState<"nova_poshta" | "ukrposhta">("nova_poshta");
-  const [chosenPayment, setPayment] = useState<Payment>("cod");
+  // «КУПУЙТЕ ЧАС-ТИ-НА-МИ» on a product card opens /checkout?pay=mono_parts: that choice comes ready.
+  // Read from the address after hydration (false on the server), so both renders agree.
+  const fromParts = useSyncExternalStore(
+    noSubscribe,
+    () => new URLSearchParams(window.location.search).get("pay") === "mono_parts",
+    () => false,
+  );
+  const [picked, setPayment] = useState<Payment | null>(null);
+  const chosenPayment: Payment = picked ?? (fromParts && pay.parts ? "mono_parts" : "cod");
   // «Жереб» is paid only online (card or installment): without it in the cart the usual choice stays.
   const cardOnly = items.some((i) => i.cardOnly);
   const payment: Payment = cardOnly && chosenPayment === "cod" ? (pay.card ?? "cod") : chosenPayment;

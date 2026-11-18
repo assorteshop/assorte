@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ShoppingCart } from "lucide-react";
 import { HeartFrame } from "@/components/brand/HeartFrame";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
+import { PartsButton } from "@/components/cart/PartsButton";
 import { formatUah } from "@/lib/format";
 import type { ProductCardData } from "@/lib/products";
 
@@ -20,18 +21,6 @@ export function ProductCard({ product }: { product: ProductCardData }) {
             fill
             sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 78vw"
             className="object-cover transition-transform duration-500 group-hover/card:scale-[1.04]"
-          />
-        )}
-        {product.mono_parts && (
-          // monobank's official «Покупка частинами» label.
-          // eslint-disable-next-line @next/next/no-img-element -- a tiny image, nothing to optimise
-          <img
-            src="/payments/pokupka-chastynamy.png"
-            alt="Покупка частинами monobank"
-            title="Покупка частинами monobank"
-            width={52}
-            height={52}
-            className="absolute right-4 top-4 size-[52px] drop-shadow-sm"
           />
         )}
         {product.badge && (
@@ -79,6 +68,11 @@ export function ProductCard({ product }: { product: ProductCardData }) {
             )}
           </div>
         </div>
+        {product.mono_parts && (
+          <div className="relative z-10 mt-4">
+            <PartsButton product={product} hasVariants={product.variantCount > 1} />
+          </div>
+        )}
       </div>
     </article>
   );
