@@ -1,5 +1,5 @@
 import { Banknote, CreditCard, Mail, Truck } from "lucide-react";
-import { INSTALLMENT_LOGO, INSTALLMENT_NAME, type PaymentOptions } from "@/lib/payments";
+import { INSTALLMENT_LOGO, INSTALLMENT_NAME, PARTS_NAME, type PaymentOptions } from "@/lib/payments";
 
 // Delivery and payment under the price. The carrier chips use our own simple icons
 // (not the carriers' logos).
@@ -38,25 +38,20 @@ export function DeliveryPayment({ pay }: { pay: PaymentOptions }) {
             </span>
           </li>
           {pay.installment && (
-            <li className="pl-9">
-              {/* PrivatBank's official «Миттєва розстрочка» logo (from their merchant branding kit). The caption shows on hover, and on tap (focus) on phones. */}
-              <span
-                tabIndex={0}
-                role="img"
-                aria-label={INSTALLMENT_NAME}
-                className="group relative inline-block size-9 cursor-help rounded-full outline-none focus-visible:ring-2 focus-visible:ring-graphite/30"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element -- a tiny SVG, nothing to optimise */}
-                <img src={INSTALLMENT_LOGO} alt="" width={36} height={36} className="size-9" />
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute bottom-full left-0 mb-2 whitespace-nowrap rounded-[10px] bg-graphite px-3 py-2 text-[13px] text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100"
-                >
-                  {INSTALLMENT_NAME}
-                </span>
-              </span>
+            <li className="flex items-center gap-3 pl-9">
+              {/* PrivatBank's official «Миттєва розстрочка» logo (from their merchant branding kit). */}
+              {/* eslint-disable-next-line @next/next/no-img-element -- a tiny SVG, nothing to optimise */}
+              <img src={INSTALLMENT_LOGO} alt="" width={28} height={28} className="size-7 shrink-0" />
+              {INSTALLMENT_NAME}
             </li>
           )}
+          {/* Shown always: monobank asked for «Покупка частинами» to be visible on the site. */}
+          <li className="flex items-center gap-3 pl-9">
+            <span aria-hidden className="size-7 shrink-0" />
+            <span>
+              {PARTS_NAME} <span className="text-muted">(без переплат і комісій)</span>
+            </span>
+          </li>
         </ol>
       </div>
     </div>
