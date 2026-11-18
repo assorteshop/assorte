@@ -36,6 +36,11 @@ export function DeliveryPayment({ pay }: { pay: PaymentOptions }) {
               Оплата карткою на сайті
               {!onlineEnabled && <span className="text-muted"> (скоро)</span>}
             </span>
+            {pay.card === "mono" && (
+              // monobank's official «plata by mono» logo (from the monobank business cabinet).
+              // eslint-disable-next-line @next/next/no-img-element -- a small SVG, nothing to optimise
+              <img src="/payments/plata-by-mono.svg" alt="plata by mono" width={78} height={16} className="h-4 w-auto shrink-0" />
+            )}
           </li>
           {pay.installment && (
             <li className="flex items-center gap-3 pl-9">
