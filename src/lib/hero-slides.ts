@@ -13,8 +13,8 @@ export type HeroSlide = {
   alt: string;
   /** Tailwind classes that place the photo inside the frame (phone first, then md:). */
   position?: string;
-  /** Words over the photo: the brand line (default) or the «Жереб» invitation. */
-  text?: "brand" | "zhereb";
+  /** Words over the photo: the brand line (default), the «Жереб» or the «Тепла п'ятниця» invitation. */
+  text?: "brand" | "zhereb" | "tepla";
 };
 
 export const heroSlides: HeroSlide[] = [
@@ -74,7 +74,22 @@ export const zherebSlide: HeroSlide = {
   text: "zhereb",
 };
 
-// The first screen shows the lemon at the eye; while «Жереб» is on sale it alternates with the «Жереб» photo
-// (the home page decides, so the slide never leads to a missing page). All other photos stay above.
-export const shownHeroSlides = (zherebOn: boolean): HeroSlide[] =>
-  zherebOn ? [heroSlides[0], zherebSlide] : [heroSlides[0]];
+// «Тепла п'ятниця» (Black Friday 2026): the post's cover photo (photo studio composite, AI label in the
+// file metadata). Portrait only, so on computers it stands on the right like the other portrait photos.
+export const teplaSlide: HeroSlide = {
+  id: "tepla",
+  desktop: null,
+  mobile: "/images/tepla/hero-m.webp",
+  bg: "#8a6448",
+  alt: "Усміхнена дівчина за столом у теплій кімнаті з кондиціонером на стіні, за вікном зима",
+  position: "object-[50%_30%] md:inset-auto md:right-[6%] md:top-0 md:w-auto md:object-contain md:[mask-image:linear-gradient(to_right,transparent,#000_18%,#000_82%,transparent)]",
+  text: "tepla",
+};
+
+// The first screen shows the lemon at the eye, then «Жереб» and «Тепла п'ятниця» while each is on
+// (the home page decides, so a slide never leads to a missing page). All other photos stay above.
+export const shownHeroSlides = (zherebOn: boolean, teplaOn = false): HeroSlide[] => [
+  heroSlides[0],
+  ...(zherebOn ? [zherebSlide] : []),
+  ...(teplaOn ? [teplaSlide] : []),
+];

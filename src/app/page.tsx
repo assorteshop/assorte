@@ -11,6 +11,7 @@ import { zhereb } from "@/content/zhereb";
 import { shownHeroSlides } from "@/lib/hero-slides";
 import { getZherebVariants } from "@/lib/products";
 import { isZherebOn } from "@/lib/zhereb";
+import { getTeplaProducts, isTeplaOn } from "@/lib/tepla";
 
 export default async function Home() {
   // «Жереб» appears on the home page (slide and block) only while it is on sale; otherwise /zhereb is a 404.
@@ -19,12 +20,14 @@ export default async function Home() {
     zhereb.moods.items.map((m) => m.name),
     await getZherebVariants(),
   );
+  // «Тепла п'ятниця» has a slide while one of its air conditioners has a sale price.
+  const teplaOn = isTeplaOn(await getTeplaProducts());
 
   return (
     <>
       <Header overlay />
       <main>
-        <Hero slides={shownHeroSlides(zherebOn)} />
+        <Hero slides={shownHeroSlides(zherebOn, teplaOn)} />
         <TrustBar />
         <Suspense fallback={<div className="mx-auto h-[520px] max-w-[1280px]" aria-hidden />}>
           <PopularProducts />

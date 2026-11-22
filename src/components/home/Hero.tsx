@@ -4,6 +4,8 @@ import Link from "next/link";
 import { ArrowRight, Pause, Play } from "lucide-react";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Heart } from "@/components/brand/Heart";
+import { HandStrike } from "@/components/brand/HandStrike";
+import { tepla } from "@/content/tepla";
 import type { HeroSlide } from "@/lib/hero-slides";
 
 const SLIDE_MS = 6500;
@@ -43,7 +45,11 @@ export function Hero({ slides }: { slides: HeroSlide[] }) {
   }, [still, paused, slides.length]);
 
   const hasZhereb = slides.some((s) => s.text === "zhereb");
-  const onZhereb = slides[active]?.text === "zhereb";
+  const hasTepla = slides.some((s) => s.text === "tepla");
+  const kind = slides[active]?.text ?? "brand";
+  const onZhereb = kind === "zhereb";
+  const onTepla = kind === "tepla";
+  const onBrand = kind === "brand";
 
   return (
     <section
@@ -86,8 +92,8 @@ export function Hero({ slides }: { slides: HeroSlide[] }) {
           {/* Words of every slide sit in one place and fade like the photos; the hidden ones are inert. */}
           <div className="grid">
           <div
-            inert={onZhereb}
-            className={`[grid-area:1/1] self-end transition-opacity duration-700 ${onZhereb ? "opacity-0" : "opacity-100"}`}
+            inert={!onBrand}
+            className={`[grid-area:1/1] self-end transition-opacity duration-700 ${onBrand ? "opacity-100" : "opacity-0"}`}
           >
             <p className="text-[11px] font-medium uppercase tracking-[0.35em] text-white/85">
               Продумані деталі для кращих моментів
@@ -120,6 +126,31 @@ export function Hero({ slides }: { slides: HeroSlide[] }) {
                 className="group mt-6 inline-flex items-center gap-3 rounded-full bg-white px-7 py-4 text-[15px] font-medium text-graphite transition-colors hover:bg-red hover:text-white md:mt-8"
               >
                 Дізнатися більше
+                <ArrowRight size={16} />
+              </Link>
+            </div>
+          )}
+          {hasTepla && (
+            <div
+              inert={!onTepla}
+              className={`[grid-area:1/1] self-end transition-opacity duration-700 ${onTepla ? "opacity-100" : "opacity-0"}`}
+            >
+              <p className="font-heading text-[48px] font-bold leading-[0.95] tracking-[-0.02em] sm:text-[68px] lg:text-[92px]">
+                <span className="mb-[0.3em] block pl-[0.9em] font-script text-[0.62em] font-normal leading-none tracking-normal">
+                  {tepla.hero.handwritten}
+                </span>
+                <span className="relative inline-block">
+                  {tepla.hero.crossed}
+                  <HandStrike width={4} />
+                </span>
+                <br />
+                {tepla.hero.title}
+              </p>
+              <Link
+                href={tepla.path}
+                className="group mt-6 inline-flex items-center gap-3 rounded-full bg-red px-7 py-4 text-[15px] font-bold text-white transition-colors hover:bg-white hover:text-graphite md:mt-8"
+              >
+                {tepla.hero.dates}
                 <ArrowRight size={16} />
               </Link>
             </div>
