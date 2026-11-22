@@ -14,6 +14,8 @@ import { JsonLd } from "@/components/JsonLd";
 import { SiteShell } from "@/components/SiteShell";
 import { getCategory } from "@/lib/categories";
 import { formatUah } from "@/lib/format";
+import { oldPriceOf } from "@/lib/sale-price";
+import { OldPrice } from "@/components/catalog/OldPrice";
 import { getArticleForProduct } from "@/lib/articles";
 import { currentPaymentOptions } from "@/lib/payments-server";
 import { getProductBySlug, getVariants } from "@/lib/products";
@@ -125,7 +127,14 @@ async function Content(props: PageProps<"/products/[slug]">) {
           )}
 
           <div className="mt-6 flex flex-wrap items-start gap-x-6 gap-y-3">
-            <p className="pt-2.5 text-[26px] font-medium leading-none sm:text-[28px]">{formatUah(product.price_uah)}</p>
+            <div className="pt-2.5">
+              {oldPriceOf(product) !== null && (
+                <OldPrice value={oldPriceOf(product)!} className="mb-2 block w-fit text-[17px]" />
+              )}
+              <p className={`text-[26px] font-medium leading-none sm:text-[28px] ${oldPriceOf(product) !== null ? "text-red" : ""}`}>
+                {formatUah(product.price_uah)}
+              </p>
+            </div>
             <AddToCartButton product={product} variant="inline" />
             <TrackViewItem slug={product.slug} name={product.name} price={product.price_uah} />
           </div>

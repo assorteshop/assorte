@@ -1,5 +1,6 @@
 "use server";
 
+import { toPriceRow } from "@/lib/sale-price";
 import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { parseArticleForm } from "@/lib/article-schema";
@@ -56,6 +57,8 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
   const variantLabel = text("variant_label");
   const category = text("category");
   const price = Number(text("price_uah"));
+  const saleText = text("sale_price_uah");
+  const sale = saleText ? Number(saleText) : null;
   const sortOrder = Number(text("sort_order") || "0");
 
   if (!name || name.length > 200) return { error: "Вкажіть назву (до 200 символів)." };
@@ -66,6 +69,11 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
   if (!Number.isInteger(price) || price < 0 || price > 1_000_000) {
     return { error: "Ціна має бути цілим числом у гривнях." };
   }
+  if (sale !== null && (!Number.isInteger(sale) || sale < 0)) {
+    return { error: "Ціна зі знижкою має бути цілим числом у гривнях." };
+  }
+  const prices = toPriceRow(price, sale);
+  if ("error" in prices) return { error: prices.error };
   if (!Number.isInteger(sortOrder)) return { error: "Порядок має бути цілим числом." };
   if (article.length > 40 || variantLabel.length > 40) {
     return { error: "Артикул і варіант: до 40 символів." };
@@ -113,7 +121,8 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
     specs,
     tagline,
     description: description || null,
-    price_uah: price,
+    price_uah: prices.price_uah,
+    old_price_uah: prices.old_price_uah,
     badge: badge || null,
     category,
     article: article || null,

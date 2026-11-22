@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { saveProduct, type FormState } from "@/app/admin/actions";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { categories } from "@/lib/categories";
+import { fromPriceRow } from "@/lib/sale-price";
 import { createSupabaseBrowser } from "@/lib/supabase-browser";
 
 type Product = {
@@ -14,6 +15,7 @@ type Product = {
   tagline: string | null;
   description: string | null;
   price_uah: number;
+  old_price_uah?: number | null;
   badge: string | null;
   category: string | null;
   colors: string[] | null;
@@ -65,6 +67,7 @@ const trimSlug = (v: string) => v.replace(/^-+|-+$/g, "");
 
 export function ProductForm({ product, prefill }: { product?: Product; prefill?: Prefill }) {
   const base = product ?? prefill;
+  const prices = product ? fromPriceRow(product) : null;
   const [state, action, pending] = useActionState(saveProduct, initial);
   const [name, setName] = useState(base?.name ?? "");
   const [slug, setSlug] = useState(product?.slug ?? "");
@@ -158,7 +161,12 @@ export function ProductForm({ product, prefill }: { product?: Product; prefill?:
         </label>
         <label className={label}>
           Ціна, грн
-          <input name="price_uah" type="number" min={0} step={1} required defaultValue={product?.price_uah ?? ""} className={field} />
+          <input name="price_uah" type="number" min={0} step={1} required defaultValue={prices?.regular ?? ""} className={field} />
+        </label>
+        <label className={label}>
+          Ціна зі знижкою, грн (необовʼязково)
+          <input name="sale_price_uah" type="number" min={0} step={1} defaultValue={prices?.sale ?? ""} placeholder="Порожньо — без знижки" className={field} />
+          <span className="mt-1 block text-[12px] text-muted">Покупець платить цю ціну, а звичайна показується перекресленою.</span>
         </label>
         <label className={label}>
           Плашка на фото (необовʼязково)

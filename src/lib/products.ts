@@ -18,6 +18,8 @@ export type Product = {
   article: string | null;
   variant_label: string | null;
   specs: { name: string; value: string }[];
+  /** The earlier price, shown crossed out (see src/lib/sale-price.ts). */
+  old_price_uah?: number | null;
   /** «З розтермінуванням від monobank»: the card shows the «Покупка частинами» label. */
   mono_parts?: boolean | null;
 };
@@ -26,7 +28,7 @@ export type Product = {
 export type ProductCardData = Product & { variantCount: number; priceFrom: boolean };
 
 const columns =
-  "id, slug, name, tagline, description, price_uah, badge, image_url, images, category, colors, article, variant_label, specs, mono_parts";
+  "id, slug, name, tagline, description, price_uah, badge, image_url, images, category, colors, article, variant_label, specs, mono_parts, old_price_uah";
 
 // Shown only while Supabase is not configured, so the layout can be reviewed.
 // Names, taglines and prices come from the approved homepage design.

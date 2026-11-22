@@ -6,11 +6,14 @@ import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { PartsButton } from "@/components/cart/PartsButton";
 import { formatUah } from "@/lib/format";
 import type { ProductCardData } from "@/lib/products";
+import { oldPriceOf } from "@/lib/sale-price";
+import { OldPrice } from "@/components/catalog/OldPrice";
 
 // Soft card (design v2, variant B): one warm rounded block, the photo fills its whole top,
 // name and price sit inside the block, bold price in the heading font, the heart cart button.
 export function ProductCard({ product }: { product: ProductCardData }) {
   const href = `/products/${product.slug}`;
+  const oldPrice = oldPriceOf(product);
   return (
     <article className="group/card relative flex h-full flex-col overflow-hidden rounded-[36px] bg-[#f3eee8]">
       <div className="relative aspect-square overflow-hidden rounded-[36px] bg-[#ebe4dc]">
@@ -52,10 +55,13 @@ export function ProductCard({ product }: { product: ProductCardData }) {
           </ul>
         )}
         <div className="mt-auto flex items-end justify-between pt-3">
-          <p className="font-heading text-[20px] font-bold leading-none">
-            {product.priceFrom && <span className="mr-1 font-sans text-[13px] font-normal text-muted">від</span>}
-            {formatUah(product.price_uah)}
-          </p>
+          <div>
+            {oldPrice !== null && <OldPrice value={oldPrice} className="mb-1.5 block w-fit text-[14px]" />}
+            <p className={`font-heading text-[20px] font-bold leading-none ${oldPrice !== null ? "text-red" : ""}`}>
+              {product.priceFrom && <span className="mr-1 font-sans text-[13px] font-normal text-muted">від</span>}
+              {formatUah(product.price_uah)}
+            </p>
+          </div>
           <div className="relative z-10">
             {product.variantCount > 1 ? (
               <Link href={href} aria-label={`Обрати варіант: ${product.name}`} className="group block text-red">
