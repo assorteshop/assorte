@@ -1,5 +1,6 @@
 "use client";
 
+import { SaleCorner } from "./SaleCorner";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef, useState } from "react";
@@ -11,10 +12,13 @@ export function ProductGallery({
   images,
   alt,
   badge,
+  sale = false,
 }: {
   images: string[];
   alt: string;
   badge?: string | null;
+  /** The product has a sale price: «АКЦІЯ» in the corner. */
+  sale?: boolean;
 }) {
   const [active, setActive] = useState(0);
   const strip = useRef<HTMLDivElement>(null);
@@ -59,8 +63,9 @@ export function ProductGallery({
             </div>
           ))}
         </div>
+        {sale && <SaleCorner large />}
         {badge && (
-          <span className="pointer-events-none absolute left-4 top-4 rounded-full bg-red px-3 py-1 text-[11px] font-medium text-white">
+          <span className={`pointer-events-none absolute left-4 ${sale ? "top-[64px]" : "top-4"} rounded-full bg-red px-3 py-1 text-[11px] font-medium text-white`}>
             {badge}
           </span>
         )}

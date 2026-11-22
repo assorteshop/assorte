@@ -83,6 +83,7 @@ async function Content(props: PageProps<"/products/[slug]">) {
             images={product.images.length > 0 ? product.images : product.image_url ? [product.image_url] : []}
             alt={product.name}
             badge={product.badge}
+            sale={oldPriceOf(product) !== null}
           />
         </div>
 

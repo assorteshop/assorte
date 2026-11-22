@@ -8,6 +8,7 @@ import { formatUah } from "@/lib/format";
 import type { ProductCardData } from "@/lib/products";
 import { oldPriceOf } from "@/lib/sale-price";
 import { OldPrice } from "@/components/catalog/OldPrice";
+import { SaleCorner } from "@/components/catalog/SaleCorner";
 
 // Soft card (design v2, variant B): one warm rounded block, the photo fills its whole top,
 // name and price sit inside the block, bold price in the heading font, the heart cart button.
@@ -26,8 +27,9 @@ export function ProductCard({ product }: { product: ProductCardData }) {
             className="object-cover transition-transform duration-500 group-hover/card:scale-[1.04]"
           />
         )}
+        {oldPrice !== null && <SaleCorner />}
         {product.badge && (
-          <span className="absolute left-5 top-5 rounded-full bg-red px-3.5 py-1.5 text-[11px] font-medium text-white">
+          <span className={`absolute left-5 ${oldPrice !== null ? "top-[60px]" : "top-5"} rounded-full bg-red px-3.5 py-1.5 text-[11px] font-medium text-white`}>
             {product.badge}
           </span>
         )}
