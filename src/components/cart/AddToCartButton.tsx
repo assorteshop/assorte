@@ -15,7 +15,7 @@ type Props = {
     image_url: string | null;
     variant_label?: string | null;
   };
-  variant: "icon" | "full" | "inline";
+  variant: "icon" | "full" | "inline" | "pill";
 };
 
 export function AddToCartButton({ product, variant }: Props) {
@@ -56,6 +56,24 @@ export function AddToCartButton({ product, variant }: Props) {
         <HeartFrame className="size-12">
           {added ? <Check size={17} strokeWidth={2.2} /> : <ShoppingCart size={17} strokeWidth={1.9} />}
         </HeartFrame>
+      </button>
+    );
+  }
+
+  if (variant === "pill") {
+    // The Apple-style catalogue card: one small centred pill; once in the cart it leads there.
+    const pill = "inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[14px] font-medium transition-colors";
+    if (inCart && !added) {
+      return (
+        <Link href="/cart" className={`${pill} border border-graphite text-graphite hover:bg-graphite hover:text-white`}>
+          <Check size={16} /> У кошику
+        </Link>
+      );
+    }
+    return (
+      <button type="button" onClick={add} className={`${pill} bg-red text-white hover:bg-graphite`}>
+        {added ? <Check size={16} /> : <ShoppingCart size={16} strokeWidth={1.75} />}
+        {added ? "Додано" : "Додати в кошик"}
       </button>
     );
   }

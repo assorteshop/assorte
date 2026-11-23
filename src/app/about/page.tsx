@@ -68,6 +68,7 @@ const categoryTagline: Record<CategorySlug, string> = {
   style: "Стиль і комфорт",
   climate: "Комфортний клімат",
   auto: "Для авто та мото",
+  watches: "Час і стиль",
 };
 
 // Each tile shows a real product photo from that category (no stock pictures).

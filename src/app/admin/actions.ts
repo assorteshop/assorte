@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { parseArticleForm } from "@/lib/article-schema";
 import { parseSettingsForm } from "@/lib/settings-schema";
 import { plainTextOf, sanitizeRichText } from "@/lib/rich-text";
-import { categories } from "@/lib/categories";
+import { audiences, categories, hasSubsections, subtypes } from "@/lib/categories";
 import { moveInOrder, moveToPosition, orderValue, type MoveDir } from "@/lib/featured-order";
 import { createSupabaseServer, requireAdmin } from "@/lib/supabase-server";
 
@@ -66,6 +66,12 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
     return { error: "Адреса сторінки: лише малі латинські літери, цифри та дефіси." };
   }
   if (!categories.some((c) => c.slug === category)) return { error: "Оберіть категорію." };
+  // Watches: «Для кого» and «Тип» are required; other categories keep them empty.
+  const sub = hasSubsections(category);
+  const audience = sub ? text("audience") : "";
+  const subtype = sub ? text("subtype") : "";
+  if (sub && !audiences.some((a) => a.slug === audience)) return { error: "Оберіть, для кого цей годинник." };
+  if (sub && !subtypes.some((t) => t.slug === subtype)) return { error: "Оберіть тип: наручні, смарт чи аксесуари." };
   if (!Number.isInteger(price) || price < 0 || price > 1_000_000) {
     return { error: "Ціна має бути цілим числом у гривнях." };
   }
@@ -125,6 +131,8 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
     old_price_uah: prices.old_price_uah,
     badge: badge || null,
     category,
+    audience: audience || null,
+    subtype: subtype || null,
     article: article || null,
     variant_label: article ? variantLabel || null : null,
     colors,

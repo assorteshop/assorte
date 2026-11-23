@@ -46,3 +46,9 @@ body {
     transform: scale(1.07);
   }
 }
+
+/* Phone menu: the next level slides in from the right, like iPhone settings. */
+@keyframes menu-in {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: none; }
+}
