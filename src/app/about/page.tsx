@@ -68,6 +68,7 @@ const categoryTagline: Record<CategorySlug, string> = {
   style: "Стиль і комфорт",
   climate: "Комфортний клімат",
   auto: "Для авто та мото",
+  watches: "Час і стиль",
 };
 
 // Each tile shows a real product photo from that category (no stock pictures).
@@ -80,7 +81,8 @@ async function CategoryTiles() {
   );
   return (
     <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3">
-      {tiles.map(({ category, image }) => (
+      {/* A category without products yet (no photo) waits until it has one. */}
+      {tiles.filter((t) => t.image).map(({ category, image }) => (
         <Link
           key={category.slug}
           href={`/catalog/${category.slug}`}

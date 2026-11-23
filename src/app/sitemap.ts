@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getPublishedArticleSlugs } from "@/lib/articles";
-import { categories } from "@/lib/categories";
+import { audiences, categories, hasSubsections } from "@/lib/categories";
 import { getAllProductSlugs, getZherebVariants } from "@/lib/products";
 import { zhereb } from "@/content/zhereb";
 import { isZherebOn } from "@/lib/zhereb";
@@ -23,6 +23,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/` },
     { url: `${base}/catalog` },
     ...categories.map((c) => ({ url: `${base}/catalog/${c.slug}` })),
+    ...categories
+      .filter((c) => hasSubsections(c.slug))
+      .flatMap((c) => audiences.map((a) => ({ url: `${base}/catalog/${c.slug}/${a.slug}` }))),
     { url: `${base}/blog` },
     { url: `${base}/about` },
     { url: `${base}/delivery-and-payment` },

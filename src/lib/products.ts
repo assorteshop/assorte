@@ -1,5 +1,5 @@
 import { cacheLife, cacheTag } from "next/cache";
-import { categories, type CategorySlug } from "./categories";
+import { categories, type Audience, type CategorySlug, type Subtype } from "./categories";
 import { supabase } from "./supabase";
 import { isZherebArticle, ZHEREB_ARTICLE, type ZherebVariant } from "./zhereb";
 
@@ -22,13 +22,16 @@ export type Product = {
   old_price_uah?: number | null;
   /** «З розтермінуванням від monobank»: the card shows the «Покупка частинами» label. */
   mono_parts?: boolean | null;
+  /** Watches only: «Для кого» and «Тип» (see src/lib/categories.ts). */
+  audience?: Audience | null;
+  subtype?: Subtype | null;
 };
 
 // A catalogue card: all products sharing one article collapse into a single card.
 export type ProductCardData = Product & { variantCount: number; priceFrom: boolean };
 
 const columns =
-  "id, slug, name, tagline, description, price_uah, badge, image_url, images, category, colors, article, variant_label, specs, mono_parts, old_price_uah";
+  "id, slug, name, tagline, description, price_uah, badge, image_url, images, category, colors, article, variant_label, specs, mono_parts, old_price_uah, audience, subtype";
 
 // Shown only while Supabase is not configured, so the layout can be reviewed.
 // Names, taglines and prices come from the approved homepage design.
@@ -141,11 +144,13 @@ export async function getFeaturedProducts(limit = 12): Promise<ProductCardData[]
   return collapseVariants(withoutZhereb(data ?? [])).slice(0, limit);
 }
 
-export async function getProducts(category?: CategorySlug): Promise<ProductCardData[]> {
+export async function getProducts(category?: CategorySlug, audience?: Audience): Promise<ProductCardData[]> {
   "use cache";
   lifetime();
   if (!supabase) {
-    return collapseVariants(designPlaceholders.filter((p) => !category || p.category === category));
+    return collapseVariants(
+      designPlaceholders.filter((p) => (!category || p.category === category) && (!audience || p.audience === audience)),
+    );
   }
 
   let query = supabase
@@ -154,6 +159,7 @@ export async function getProducts(category?: CategorySlug): Promise<ProductCardD
     .eq("is_published", true)
     .order("sort_order", { ascending: true });
   if (category) query = query.eq("category", category);
+  if (audience) query = query.eq("audience", audience);
 
   const { data, error } = await query;
   if (error) {

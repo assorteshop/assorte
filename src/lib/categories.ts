@@ -1,4 +1,4 @@
-export type CategorySlug = "sport" | "tech" | "gifts" | "style" | "climate" | "auto";
+export type CategorySlug = "sport" | "tech" | "gifts" | "style" | "climate" | "auto" | "watches";
 
 export type Category = {
   slug: CategorySlug;
@@ -50,7 +50,35 @@ export const categories: Category[] = [
     eyebrow: "Auto & Moto",
     description: "Корисні аксесуари та речі для автомобіля й мотоцикла.",
   },
+  {
+    slug: "watches",
+    name: "Годинники",
+    eyebrow: "Годинники",
+    description: "Наручні та смарт-годинники для чоловіків, жінок і дітей, аксесуари до них.",
+  },
 ];
+
+// «Годинники» has sub-sections: «Для кого» (its own page, /catalog/watches/men) and «Тип»
+// (switches on the page). Stored on products as `audience` and `subtype` (supabase/migration-watches.sql).
+export type Audience = "men" | "women" | "kids";
+export type Subtype = "wrist" | "smart" | "accessories";
+
+export const audiences: { slug: Audience; name: string }[] = [
+  { slug: "men", name: "Чоловікам" },
+  { slug: "women", name: "Жінкам" },
+  { slug: "kids", name: "Дитячі" },
+];
+
+export const subtypes: { slug: Subtype; name: string }[] = [
+  { slug: "wrist", name: "Наручні" },
+  { slug: "smart", name: "Смарт" },
+  { slug: "accessories", name: "Аксесуари" },
+];
+
+/** Categories that have the «Для кого» / «Тип» sub-sections. */
+export const hasSubsections = (slug: string | null | undefined) => slug === "watches";
+
+export const getAudience = (slug: string) => audiences.find((a) => a.slug === slug);
 
 export const getCategory = (slug: string) =>
   categories.find((c) => c.slug === slug);

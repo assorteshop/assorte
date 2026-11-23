@@ -4,7 +4,7 @@ import { useActionState, useState } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { saveProduct, type FormState } from "@/app/admin/actions";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
-import { categories } from "@/lib/categories";
+import { audiences, categories, hasSubsections, subtypes } from "@/lib/categories";
 import { fromPriceRow } from "@/lib/sale-price";
 import { createSupabaseBrowser } from "@/lib/supabase-browser";
 
@@ -27,6 +27,8 @@ type Product = {
   is_published: boolean;
   is_featured: boolean;
   mono_parts?: boolean | null;
+  audience?: string | null;
+  subtype?: string | null;
   sort_order: number;
 };
 
@@ -71,6 +73,7 @@ export function ProductForm({ product, prefill }: { product?: Product; prefill?:
   const [state, action, pending] = useActionState(saveProduct, initial);
   const [name, setName] = useState(base?.name ?? "");
   const [slug, setSlug] = useState(product?.slug ?? "");
+  const [category, setCategory] = useState(base?.category ?? "");
   const [slugTouched, setSlugTouched] = useState(Boolean(product));
   const [images, setImages] = useState<string[]>(
     product?.images?.length ? product.images : product?.image_url ? [product.image_url] : [],
@@ -152,13 +155,35 @@ export function ProductForm({ product, prefill }: { product?: Product; prefill?:
         </label>
         <label className={label}>
           Категорія
-          <select name="category" required defaultValue={base?.category ?? ""} className={field}>
+          <select name="category" required value={category} onChange={(e) => setCategory(e.target.value)} className={field}>
             <option value="" disabled>Оберіть…</option>
             {categories.map((c) => (
               <option key={c.slug} value={c.slug}>{c.name}</option>
             ))}
           </select>
         </label>
+        {hasSubsections(category) && (
+          <div className="grid gap-4 rounded-[6px] bg-white p-4 md:col-span-2 md:grid-cols-2">
+            <label className={label}>
+              Для кого
+              <select name="audience" required defaultValue={product?.audience ?? ""} className={field}>
+                <option value="" disabled>Оберіть…</option>
+                {audiences.map((a) => (
+                  <option key={a.slug} value={a.slug}>{a.name}</option>
+                ))}
+              </select>
+            </label>
+            <label className={label}>
+              Тип
+              <select name="subtype" required defaultValue={product?.subtype ?? ""} className={field}>
+                <option value="" disabled>Оберіть…</option>
+                {subtypes.map((t) => (
+                  <option key={t.slug} value={t.slug}>{t.name}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+        )}
         <label className={label}>
           Ціна, грн
           <input name="price_uah" type="number" min={0} step={1} required defaultValue={prices?.regular ?? ""} className={field} />
