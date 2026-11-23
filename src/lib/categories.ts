@@ -26,7 +26,7 @@ export const categories: Category[] = [
   {
     slug: "gifts",
     name: "Подарунки",
-    eyebrow: "Gifts & Discoveries",
+    eyebrow: "Подарунки",
     description:
       "Незвичайні подарунки, головоломки, механічні скриньки та оригінальні речі.",
   },

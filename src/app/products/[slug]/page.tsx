@@ -16,6 +16,7 @@ import { getCategory } from "@/lib/categories";
 import { formatUah } from "@/lib/format";
 import { oldPriceOf } from "@/lib/sale-price";
 import { OldPrice } from "@/components/catalog/OldPrice";
+import { BUY_ROW_ID, StickyBuyBar } from "@/components/cart/StickyBuyBar";
 import { getArticleForProduct } from "@/lib/articles";
 import { currentPaymentOptions } from "@/lib/payments-server";
 import { getProductBySlug, getVariants } from "@/lib/products";
@@ -127,7 +128,7 @@ async function Content(props: PageProps<"/products/[slug]">) {
             </ul>
           )}
 
-          <div className="mt-6 flex flex-wrap items-start gap-x-6 gap-y-3">
+          <div id={BUY_ROW_ID} className="mt-6 flex flex-wrap items-start gap-x-6 gap-y-3">
             <div className="pt-2.5">
               {oldPriceOf(product) !== null && (
                 <OldPrice value={oldPriceOf(product)!} className="mb-2 block w-fit text-[17px]" />
@@ -139,6 +140,7 @@ async function Content(props: PageProps<"/products/[slug]">) {
             <AddToCartButton product={product} variant="inline" />
             <TrackViewItem slug={product.slug} name={product.name} price={product.price_uah} />
           </div>
+          <StickyBuyBar product={product} oldPrice={oldPriceOf(product)} />
 
           <ReviewsSummaryLink count={reviews.count} average={reviews.average} />
 
@@ -182,6 +184,8 @@ async function Content(props: PageProps<"/products/[slug]">) {
           />
         </section>
       </div>
+      {/* Room on phones so the sticky «Додати в кошик» bar never covers the end of the page. */}
+      <div aria-hidden className="h-20 md:hidden" />
     </section>
   );
 }
