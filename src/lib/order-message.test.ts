@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cleanTracking, encodeContact, messageLinks, parseContact, normalizeUaPhone, processedMessage, shippedMessage, trackingUrl } from "./order-message";
+import { cleanTracking, encodeContact, messageForStatus, messageLinks, parseContact, primaryLink, normalizeUaPhone, processedMessage, shippedMessage, trackingUrl } from "./order-message";
 
 describe("normalizeUaPhone", () => {
   it.each([
@@ -83,5 +83,26 @@ describe("preferred contact channel in the order comment", () => {
   it("offers a call link along with the messengers", () => {
     const call = messageLinks({ phone: "0689392121", email: null, subject: "s", text: "t" }).find((l) => l.id === "call");
     expect(call?.href).toBe("tel:+380689392121");
+  });
+});
+
+describe("message for each status", () => {
+  const order = { number: 1001, customer_name: "Іван Петренко", delivery_method: "nova_poshta" };
+  it("«Нове» has no message, the others name the order", () => {
+    expect(messageForStatus("new", order)).toBeNull();
+    for (const s of ["confirmed", "done", "cancelled"]) expect(messageForStatus(s, order)).toContain("№1001");
+    expect(messageForStatus("done", order)).toContain("Дякуємо");
+    expect(messageForStatus("cancelled", order)).toContain("скасовано");
+  });
+  it("«Відправлено» waits for the waybill number", () => {
+    expect(messageForStatus("shipped", order, "  ")).toBeNull();
+    expect(messageForStatus("shipped", order, "5945 0012 3456 78")).toContain("59450012345678");
+  });
+  it("the big button follows the customer's choice, Viber when there is none or only a call", () => {
+    const links = messageLinks({ phone: "0689392121", email: null, subject: "s", text: "t" });
+    expect(primaryLink(links, "telegram")?.id).toBe("telegram");
+    expect(primaryLink(links, null)?.id).toBe("viber");
+    expect(primaryLink(links, "call")?.id).toBe("viber");
+    expect(primaryLink(messageLinks({ phone: "1", email: "a@b.ua", subject: "s", text: "t" }), null)?.id).toBe("email");
   });
 });

@@ -5,13 +5,6 @@ import { OrderMessage } from "@/components/admin/OrderMessage";
 import { CONTACT_CHANNELS, parseContact } from "@/lib/order-message";
 import { firstTouchLabel } from "@/lib/analytics";
 
-const statuses: Record<string, string> = {
-  new: "Нове",
-  confirmed: "Підтверджено",
-  shipped: "Відправлено",
-  done: "Виконано",
-  cancelled: "Скасовано",
-};
 
 export default async function AdminOrders() {
   const { supabase } = await requireAdmin();
@@ -96,18 +89,7 @@ export default async function AdminOrders() {
                   </li>
                 ))}
               </ul>
-              <OrderMessage order={o} preferred={contact.channel} />
-              <form action={setOrderStatus} className="mt-4 flex items-center gap-3">
-                <input type="hidden" name="id" value={o.id} />
-                <select name="status" defaultValue={o.status} className="h-10 rounded-[4px] border border-line bg-white px-3 text-[13px]">
-                  {Object.entries(statuses).map(([value, text]) => (
-                    <option key={value} value={value}>{text}</option>
-                  ))}
-                </select>
-                <button type="submit" className="rounded-[4px] bg-graphite px-4 py-2.5 text-[13px] text-white">
-                  Зберегти статус
-                </button>
-              </form>
+              <OrderMessage order={o} preferred={contact.channel} saveStatus={setOrderStatus} />
             </li>
             );
           })}
