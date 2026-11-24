@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
 import { audiences, categories, getCategory, hasSubsections } from "@/lib/categories";
-import { formatUah } from "@/lib/format";
+import { QuickPrice, QuickPublish } from "./QuickEdit";
 import {
   type AdminProduct,
   countByCategory,
@@ -17,7 +17,10 @@ import {
 // The admin «Товари» list: search, category tabs (with «Для кого» for watches) and «Показати».
 // Everything filters on the spot; the filter is kept in the address, so after editing a product
 // «Назад» brings you back to the same place.
-export function ProductList({ products, initial }: { products: AdminProduct[]; initial: ListFilter }) {
+export function ProductList({ products: initialProducts, initial }: { products: AdminProduct[]; initial: ListFilter }) {
+  const [products, setProducts] = useState(initialProducts);
+  const patch = (id: string) => (p: Partial<AdminProduct>) =>
+    setProducts((list) => list.map((x) => (x.id === id ? { ...x, ...p } : x)));
   const [f, setF] = useState<ListFilter>(initial);
   const searchRef = useRef<HTMLInputElement>(null);
   const set = (patch: Partial<ListFilter>) => setF((prev) => ({ ...prev, ...patch }));
@@ -148,42 +151,36 @@ export function ProductList({ products, initial }: { products: AdminProduct[]; i
         <ul className="mt-3 divide-y divide-line rounded-[6px] bg-white">
           {shown.map((p) => {
             const photo = p.image_url ?? p.images?.find(Boolean) ?? null;
-            const sale = p.old_price_uah != null && p.old_price_uah > p.price_uah;
+            const audience = audiences.find((a) => a.slug === p.audience);
             return (
-              <li key={p.id}>
+              <li key={p.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:flex-nowrap">
                 <Link
                   href={`/admin/products/${p.id}${back ? `?back=${encodeURIComponent(back)}` : ""}`}
-                  className="flex items-center gap-4 px-4 py-3 hover:bg-ivory"
+                  className="group flex min-w-0 flex-1 basis-full items-center gap-4 sm:basis-auto"
                 >
                   {photo ? (
                     // eslint-disable-next-line @next/next/no-img-element -- small admin thumbnail
-                    <img src={photo} alt="" loading="lazy" className="size-14 rounded-[4px] bg-ivory object-contain" />
+                    <img src={photo} alt="" loading="lazy" className="size-14 shrink-0 rounded-[4px] bg-ivory object-contain" />
                   ) : (
-                    <span className="grid size-14 place-items-center rounded-[4px] bg-ivory text-[10px] text-muted">без фото</span>
+                    <span className="grid size-14 shrink-0 place-items-center rounded-[4px] bg-ivory text-[10px] text-muted">без фото</span>
                   )}
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[15px]">
+                    <span className="block truncate text-[15px] group-hover:text-red">
                       {p.name}
                       {p.variant_label && <span className="text-muted"> — {p.variant_label}</span>}
                     </span>
                     <span className="block text-[12px] text-muted">
                       {(p.category && getCategory(p.category)?.name) ?? "Без категорії"}
-                      {p.audience && audiences.find((a) => a.slug === p.audience) && ` · ${audiences.find((a) => a.slug === p.audience)!.name}`}
-                      {" · "}
-                      {sale && <span className="mr-1 line-through">{formatUah(p.old_price_uah!)}</span>}
-                      <span className={sale ? "text-red" : ""}>{formatUah(p.price_uah)}</span>
+                      {audience && ` · ${audience.name}`}
                       {p.article ? ` · арт. ${p.article}` : ""}
+                      {p.is_featured && " · На головній"}
                     </span>
                   </span>
-                  {p.is_featured && <span className="hidden rounded-full bg-ivory px-3 py-1 text-[11px] sm:inline">На головній</span>}
-                  <span
-                    className={`rounded-full px-3 py-1 text-[11px] ${
-                      p.is_published ? "bg-[#e3f1e6] text-[#1f6b34]" : "bg-[#f1e3e3] text-red"
-                    }`}
-                  >
-                    {p.is_published ? "Опубліковано" : "Чернетка"}
-                  </span>
                 </Link>
+                <div className="ml-[72px] flex flex-wrap items-center gap-x-4 gap-y-2 sm:ml-0 sm:flex-nowrap">
+                  <QuickPrice product={p} onSaved={patch(p.id)} />
+                  <QuickPublish product={p} onSaved={patch(p.id)} />
+                </div>
               </li>
             );
           })}

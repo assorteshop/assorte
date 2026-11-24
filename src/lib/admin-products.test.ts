@@ -6,6 +6,7 @@ import {
   filterProducts,
   filterToQuery,
   listPath,
+  parseQuickPrice,
   normalize,
 } from "./admin-products";
 
@@ -85,5 +86,18 @@ describe("listPath", () => {
     expect(listPath("?evil=1&show=draft")).toBe("/admin/products?show=draft");
     expect(listPath("//evil.com")).toBe("/admin/products");
     expect(listPath(null)).toBe("/admin/products");
+  });
+});
+
+describe("parseQuickPrice", () => {
+  it("reads prices with spaces and «грн»", () => {
+    expect(parseQuickPrice("15 999", "")).toEqual({ price_uah: 15999, old_price_uah: null });
+    expect(parseQuickPrice("18 999 грн", "15999")).toEqual({ price_uah: 15999, old_price_uah: 18999 });
+  });
+  it("refuses bad prices", () => {
+    expect(parseQuickPrice("", "")).toHaveProperty("error");
+    expect(parseQuickPrice("12,5", "")).toHaveProperty("error");
+    expect(parseQuickPrice("1000", "1200")).toHaveProperty("error");
+    expect(parseQuickPrice("1000", "abc")).toHaveProperty("error");
   });
 });

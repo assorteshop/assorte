@@ -7,7 +7,7 @@ import { parseArticleForm } from "@/lib/article-schema";
 import { parseSettingsForm } from "@/lib/settings-schema";
 import { plainTextOf, sanitizeRichText } from "@/lib/rich-text";
 import { ORDER_STATUSES } from "@/lib/order-message";
-import { listPath } from "@/lib/admin-products";
+import { listPath, parseQuickPrice } from "@/lib/admin-products";
 import { audiences, categories, hasSubsections, subtypes } from "@/lib/categories";
 import { moveInOrder, moveToPosition, orderValue, type MoveDir } from "@/lib/featured-order";
 import { createSupabaseServer, requireAdmin } from "@/lib/supabase-server";
@@ -185,6 +185,34 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
 
   updateTag("products");
   redirect(listPath(formData.get("back")));
+}
+
+export type QuickResult = { error: string } | { ok: true; price_uah?: number; old_price_uah?: number | null };
+
+/** «Товари» list: change the price (and sale price) without opening the product. */
+export async function quickSetPrice(id: string, regular: string, sale: string): Promise<QuickResult> {
+  const { supabase } = await requireAdmin();
+  const row = parseQuickPrice(regular, sale);
+  if ("error" in row) return { error: row.error };
+  const { error } = await supabase.from("products").update(row).eq("id", id);
+  if (error) {
+    console.error("[assorte] quickSetPrice failed:", error.message);
+    return { error: "Не вдалося зберегти ціну. Спробуйте ще раз." };
+  }
+  updateTag("products");
+  return { ok: true, ...row };
+}
+
+/** «Товари» list: publish or hide a product without opening it. */
+export async function quickSetPublished(id: string, published: boolean): Promise<QuickResult> {
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase.from("products").update({ is_published: published }).eq("id", id);
+  if (error) {
+    console.error("[assorte] quickSetPublished failed:", error.message);
+    return { error: "Не вдалося змінити. Спробуйте ще раз." };
+  }
+  updateTag("products");
+  return { ok: true };
 }
 
 export async function moveFeatured(formData: FormData) {

@@ -1,4 +1,6 @@
 // Search and filters for the admin «Товари» list. Pure functions, so they are easy to test;
+
+import { type PriceRow, toPriceRow } from "./sale-price";
 // the list itself is in src/components/admin/ProductList.tsx.
 
 export type AdminProduct = {
@@ -111,4 +113,17 @@ export function listPath(back: unknown) {
   if (typeof back !== "string" || !back.startsWith("?")) return "/admin/products";
   const params = Object.fromEntries(new URLSearchParams(back));
   return `/admin/products${filterToQuery(filterFromParams(params))}`;
+}
+
+/** Quick price edit in the list: «15 999» and «12 499» → database row, or an error text.
+ *  Same rules as the product form (whole hryvnias, sale lower than the regular price). */
+export function parseQuickPrice(regularText: string, saleText: string): PriceRow | { error: string } {
+  const num = (s: string) => (s.replace(/[\s ]/g, "").replace(/грн\.?$/i, "") || null);
+  const r = num(regularText);
+  const s = num(saleText);
+  const price = r === null ? NaN : Number(r);
+  if (!Number.isInteger(price) || price < 0 || price > 1_000_000) return { error: "Ціна має бути цілим числом у гривнях." };
+  const sale = s === null ? null : Number(s);
+  if (sale !== null && (!Number.isInteger(sale) || sale < 0)) return { error: "Ціна зі знижкою має бути цілим числом у гривнях." };
+  return toPriceRow(price, sale);
 }
