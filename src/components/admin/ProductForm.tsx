@@ -67,7 +67,7 @@ const normalizeSlug = (v: string) =>
 
 const trimSlug = (v: string) => v.replace(/^-+|-+$/g, "");
 
-export function ProductForm({ product, prefill }: { product?: Product; prefill?: Prefill }) {
+export function ProductForm({ product, prefill, back }: { product?: Product; prefill?: Prefill; back?: string }) {
   const base = product ?? prefill;
   const prices = product ? fromPriceRow(product) : null;
   const [state, action, pending] = useActionState(saveProduct, initial);
@@ -129,6 +129,7 @@ export function ProductForm({ product, prefill }: { product?: Product; prefill?:
 
   return (
     <form action={action} className="mt-6 space-y-8">
+      {back && <input type="hidden" name="back" value={back} />}
       {product && <input type="hidden" name="id" value={product.id} />}
       <input type="hidden" name="images" value={JSON.stringify(images)} />
       <input type="hidden" name="specs" value={JSON.stringify(specs)} />

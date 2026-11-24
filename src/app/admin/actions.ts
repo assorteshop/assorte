@@ -7,6 +7,7 @@ import { parseArticleForm } from "@/lib/article-schema";
 import { parseSettingsForm } from "@/lib/settings-schema";
 import { plainTextOf, sanitizeRichText } from "@/lib/rich-text";
 import { ORDER_STATUSES } from "@/lib/order-message";
+import { listPath } from "@/lib/admin-products";
 import { audiences, categories, hasSubsections, subtypes } from "@/lib/categories";
 import { moveInOrder, moveToPosition, orderValue, type MoveDir } from "@/lib/featured-order";
 import { createSupabaseServer, requireAdmin } from "@/lib/supabase-server";
@@ -183,7 +184,7 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
   }
 
   updateTag("products");
-  redirect("/admin/products");
+  redirect(listPath(formData.get("back")));
 }
 
 export async function moveFeatured(formData: FormData) {
@@ -217,7 +218,7 @@ export async function deleteProduct(formData: FormData) {
     await supabase.from("products").delete().eq("id", id);
     updateTag("products");
   }
-  redirect("/admin/products");
+  redirect(listPath(formData.get("back")));
 }
 
 const orderStatuses: string[] = ORDER_STATUSES.map((s) => s.id);
