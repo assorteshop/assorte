@@ -86,3 +86,48 @@ export function messageLinks(args: { phone: string; email: string | null; subjec
   }
   return links;
 }
+
+type OrderForText = { number: number; customer_name: string; delivery_method: string };
+
+export function doneMessage(order: OrderForText): string {
+  return `Вітаємо, ${order.customer_name}! Дякуємо, що отримали замовлення №${order.number} в ASSORTE. Будемо раді вашому відгуку про товар на нашому сайті. До нових зустрічей!`;
+}
+
+export function cancelledMessage(order: OrderForText): string {
+  return `Вітаємо, ${order.customer_name}! Ваше замовлення №${order.number} в ASSORTE скасовано. Якщо це сталося помилково або у вас є запитання, напишіть нам у відповідь, ми допоможемо.`;
+}
+
+// Order statuses in the admin; the label is what the owner sees in the list.
+export const ORDER_STATUSES = [
+  { id: "new", label: "Нове" },
+  { id: "confirmed", label: "Підтверджено" },
+  { id: "shipped", label: "Відправлено" },
+  { id: "done", label: "Виконано" },
+  { id: "cancelled", label: "Скасовано" },
+] as const;
+export type OrderStatus = (typeof ORDER_STATUSES)[number]["id"];
+
+/**
+ * The message for the customer that goes with a status. «Нове» has none; «Відправлено» needs the
+ * waybill number first (null until it is typed).
+ */
+export function messageForStatus(status: string, order: OrderForText, tracking = ""): string | null {
+  switch (status) {
+    case "confirmed":
+      return processedMessage(order);
+    case "shipped":
+      return cleanTracking(tracking) ? shippedMessage(order, tracking) : null;
+    case "done":
+      return doneMessage(order);
+    case "cancelled":
+      return cancelledMessage(order);
+    default:
+      return null;
+  }
+}
+
+/** The big button: the messenger the customer chose; without a choice, Viber (the most common in Ukraine). */
+export function primaryLink(links: MessageLink[], preferred: ChannelId | null): MessageLink | undefined {
+  const want = preferred && preferred !== "call" ? preferred : "viber";
+  return links.find((l) => l.id === want) ?? links.find((l) => l.id !== "call");
+}

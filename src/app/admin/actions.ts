@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { parseArticleForm } from "@/lib/article-schema";
 import { parseSettingsForm } from "@/lib/settings-schema";
 import { plainTextOf, sanitizeRichText } from "@/lib/rich-text";
+import { ORDER_STATUSES } from "@/lib/order-message";
 import { audiences, categories, hasSubsections, subtypes } from "@/lib/categories";
 import { moveInOrder, moveToPosition, orderValue, type MoveDir } from "@/lib/featured-order";
 import { createSupabaseServer, requireAdmin } from "@/lib/supabase-server";
@@ -219,7 +220,7 @@ export async function deleteProduct(formData: FormData) {
   redirect("/admin/products");
 }
 
-const orderStatuses = ["new", "confirmed", "shipped", "done", "cancelled"];
+const orderStatuses: string[] = ORDER_STATUSES.map((s) => s.id);
 
 export async function setOrderStatus(formData: FormData) {
   const { supabase } = await requireAdmin();
