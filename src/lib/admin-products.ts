@@ -17,6 +17,7 @@ export type AdminProduct = {
   images: string[] | null;
   article: string | null;
   variant_label: string | null;
+  sort_order: number;
 };
 
 export type Show = "all" | "published" | "draft" | "sale" | "nophoto";
@@ -127,3 +128,25 @@ export function parseQuickPrice(regularText: string, saleText: string): PriceRow
   if (sale !== null && (!Number.isInteger(sale) || sale < 0)) return { error: "Ціна зі знижкою має бути цілим числом у гривнях." };
   return toPriceRow(price, sale);
 }
+
+/**
+ * New «Порядок» numbers after the owner dragged products into a new order.
+ * `current` = the products being reordered with their numbers now; `ids` = the same products in the
+ * new order. If their current numbers are all different, the products just swap those numbers, so
+ * their places among other products (e.g. other watches «Для кого», or «Усі товари») stay as they
+ * were. If some numbers repeat (old products all had 100), they get fresh numbers 10, 20, 30…
+ * Returns only the products whose number changes.
+ */
+export function newSortOrders(current: { id: string; sort_order: number }[], ids: string[]) {
+  const byId = new Map(current.map((p) => [p.id, p.sort_order]));
+  if (ids.length !== current.length || ids.some((id) => !byId.has(id)) || new Set(ids).size !== ids.length) {
+    throw new Error("reorder: the list changed, reload the page");
+  }
+  const values = current.map((p) => p.sort_order).sort((a, b) => a - b);
+  const unique = new Set(values).size === values.length;
+  const slot = (i: number) => (unique ? values[i] : (i + 1) * 10);
+  return ids.flatMap((id, i) => (byId.get(id) === slot(i) ? [] : [{ id, sort_order: slot(i) }]));
+}
+
+/** The order can be changed only inside one category, with no search and «Показати: Усі». */
+export const canReorder = (f: ListFilter) => f.cat !== "" && f.cat !== "none" && !f.q.trim() && f.show === "all";

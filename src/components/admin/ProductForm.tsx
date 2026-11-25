@@ -226,10 +226,8 @@ export function ProductForm({ product, prefill, back }: { product?: Product; pre
           Кольори (необовʼязково)
           <input name="colors" defaultValue={base?.colors?.join(", ") ?? ""} placeholder="#171717, #e9e1d6" className={field} />
         </label>
-        <label className={label}>
-          Порядок (менше — вище)
-          <input name="sort_order" type="number" step={1} defaultValue={base?.sort_order ?? 100} className={field} />
-        </label>
+        {/* Порядок is set by dragging in the «Товари» list; a new variant keeps its sibling's place. */}
+        {!product && prefill?.sort_order != null && <input type="hidden" name="sort_order" value={prefill.sort_order} />}
       </div>
 
       <fieldset>

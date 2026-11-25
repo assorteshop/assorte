@@ -7,7 +7,7 @@ import { parseArticleForm } from "@/lib/article-schema";
 import { parseSettingsForm } from "@/lib/settings-schema";
 import { plainTextOf, sanitizeRichText } from "@/lib/rich-text";
 import { ORDER_STATUSES } from "@/lib/order-message";
-import { listPath, parseQuickPrice } from "@/lib/admin-products";
+import { listPath, newSortOrders, parseQuickPrice } from "@/lib/admin-products";
 import { audiences, categories, hasSubsections, subtypes } from "@/lib/categories";
 import { moveInOrder, moveToPosition, orderValue, type MoveDir } from "@/lib/featured-order";
 import { createSupabaseServer, requireAdmin } from "@/lib/supabase-server";
@@ -61,7 +61,10 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
   const price = Number(text("price_uah"));
   const saleText = text("sale_price_uah");
   const sale = saleText ? Number(saleText) : null;
-  const sortOrder = Number(text("sort_order") || "0");
+  // «Порядок» is set by dragging in the «Товари» list. A new variant brings its sibling's number
+  // (stays next to it); any other new product goes to the end of its category.
+  const sortText = text("sort_order");
+  const sortOrder = sortText ? Number(sortText) : null;
 
   if (!name || name.length > 200) return { error: "Вкажіть назву (до 200 символів)." };
   if (!slugPattern.test(slug) || slug.length > 80) {
@@ -82,7 +85,7 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
   }
   const prices = toPriceRow(price, sale);
   if ("error" in prices) return { error: prices.error };
-  if (!Number.isInteger(sortOrder)) return { error: "Порядок має бути цілим числом." };
+  if (sortOrder !== null && !Number.isInteger(sortOrder)) return { error: "Порядок має бути цілим числом." };
   if (article.length > 40 || variantLabel.length > 40) {
     return { error: "Артикул і варіант: до 40 символів." };
   }
@@ -143,8 +146,22 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
     is_published: formData.get("is_published") === "on",
     is_featured: formData.get("is_featured") === "on",
     mono_parts: formData.get("mono_parts") === "on",
-    sort_order: sortOrder,
   };
+
+  let placed: { sort_order?: number } = {};
+  if (!id) {
+    if (sortOrder !== null) placed = { sort_order: sortOrder };
+    else {
+      const { data: last } = await supabase
+        .from("products")
+        .select("sort_order")
+        .eq("category", category)
+        .order("sort_order", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      placed = { sort_order: (last?.sort_order ?? 0) + 10 };
+    }
+  }
 
   // A product newly marked as popular goes to the end of the slider; unmarking removes it.
   let featuredOrder: number | null | undefined;
@@ -165,7 +182,7 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
       featuredOrder = (last?.featured_order ?? 0) + 10;
     }
   }
-  const saved = featuredOrder === undefined ? row : { ...row, featured_order: featuredOrder };
+  const saved = { ...row, ...placed, ...(featuredOrder === undefined ? {} : { featured_order: featuredOrder }) };
 
   const { error } = id
     ? await supabase.from("products").update(saved).eq("id", id)
@@ -213,6 +230,30 @@ export async function quickSetPublished(id: string, published: boolean): Promise
   }
   updateTag("products");
   return { ok: true };
+}
+
+/** «Товари» list: save the order the owner dragged the products into (ids in the new order). */
+export async function reorderProducts(ids: string[]): Promise<QuickResult & { orders?: { id: string; sort_order: number }[] }> {
+  const { supabase } = await requireAdmin();
+  if (!Array.isArray(ids) || !ids.length || ids.length > 1000) return { error: "Порожній список." };
+  const { data, error } = await supabase.from("products").select("id, sort_order").in("id", ids);
+  if (error || !data) return { error: "Не вдалося зберегти порядок. Спробуйте ще раз." };
+  let changes: { id: string; sort_order: number }[];
+  try {
+    changes = newSortOrders(data as { id: string; sort_order: number }[], ids);
+  } catch {
+    return { error: "Список змінився. Оновіть сторінку й спробуйте ще раз." };
+  }
+  const results = await Promise.all(
+    changes.map((c) => supabase.from("products").update({ sort_order: c.sort_order }).eq("id", c.id)),
+  );
+  const failed = results.find((r) => r.error);
+  if (failed?.error) {
+    console.error("[assorte] reorderProducts failed:", failed.error.message);
+    return { error: "Частину порядку не збережено. Оновіть сторінку й перевірте." };
+  }
+  updateTag("products");
+  return { ok: true, orders: changes };
 }
 
 export async function moveFeatured(formData: FormData) {

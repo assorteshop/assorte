@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Search, X } from "lucide-react";
+import { ArrowUpDown, Search, X } from "lucide-react";
 import { audiences, categories, getCategory, hasSubsections } from "@/lib/categories";
 import { QuickPrice, QuickPublish } from "./QuickEdit";
+import { ReorderList } from "./ReorderList";
 import {
   type AdminProduct,
+  canReorder,
   countByCategory,
   filterProducts,
   filterToQuery,
@@ -22,6 +24,7 @@ export function ProductList({ products: initialProducts, initial }: { products: 
   const patch = (id: string) => (p: Partial<AdminProduct>) =>
     setProducts((list) => list.map((x) => (x.id === id ? { ...x, ...p } : x)));
   const [f, setF] = useState<ListFilter>(initial);
+  const [ordering, setOrdering] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const set = (patch: Partial<ListFilter>) => setF((prev) => ({ ...prev, ...patch }));
 
@@ -61,6 +64,30 @@ export function ProductList({ products: initialProducts, initial }: { products: 
     ...categories.map((c) => ({ slug: c.slug as string, name: c.name })),
     ...(hasNoCategory ? [{ slug: "none", name: "Без категорії" }] : []),
   ];
+
+  const sectionTitle = [
+    getCategory(f.cat)?.name,
+    f.aud && audiences.find((a) => a.slug === f.aud)?.name,
+  ].filter(Boolean).join(" · ");
+
+  if (ordering) {
+    return (
+      <ReorderList
+        title={sectionTitle}
+        products={shown}
+        onCancel={() => setOrdering(false)}
+        onSaved={(orders) => {
+          const next = new Map(orders.map((o) => [o.id, o.sort_order]));
+          setProducts((list) =>
+            list
+              .map((x) => (next.has(x.id) ? { ...x, sort_order: next.get(x.id)! } : x))
+              .sort((a, b) => a.sort_order - b.sort_order),
+          );
+          setOrdering(false);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="mt-6">
@@ -141,6 +168,16 @@ export function ProductList({ products: initialProducts, initial }: { products: 
         {filtered && (
           <button type="button" onClick={() => setF({ q: "", cat: "", aud: "", show: "all" })} className="underline underline-offset-4 hover:text-graphite">
             Скинути все
+          </button>
+        )}
+        {!f.cat && <span className="ml-auto text-[12px]">Щоб змінити порядок, оберіть категорію.</span>}
+        {canReorder(f) && shown.length > 1 && (
+          <button
+            type="button"
+            onClick={() => setOrdering(true)}
+            className="ml-auto inline-flex items-center gap-1.5 rounded-[4px] border border-line bg-white px-3.5 py-2 text-[13px] text-graphite hover:border-graphite"
+          >
+            <ArrowUpDown size={14} /> Змінити порядок
           </button>
         )}
       </p>

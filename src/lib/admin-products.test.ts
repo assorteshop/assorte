@@ -6,6 +6,8 @@ import {
   filterProducts,
   filterToQuery,
   listPath,
+  newSortOrders,
+  canReorder,
   parseQuickPrice,
   normalize,
 } from "./admin-products";
@@ -24,6 +26,7 @@ const base: AdminProduct = {
   images: null,
   article: "A-17",
   variant_label: "чорний",
+  sort_order: 100,
 };
 const p = (o: Partial<AdminProduct>): AdminProduct => ({ ...base, article: null, variant_label: null, ...o });
 
@@ -99,5 +102,46 @@ describe("parseQuickPrice", () => {
     expect(parseQuickPrice("12,5", "")).toHaveProperty("error");
     expect(parseQuickPrice("1000", "1200")).toHaveProperty("error");
     expect(parseQuickPrice("1000", "abc")).toHaveProperty("error");
+  });
+});
+
+describe("newSortOrders", () => {
+  const cur = [
+    { id: "a", sort_order: 10 },
+    { id: "b", sort_order: 30 },
+    { id: "c", sort_order: 50 },
+  ];
+  it("swaps the existing numbers when they are all different", () => {
+    expect(newSortOrders(cur, ["c", "a", "b"])).toEqual([
+      { id: "c", sort_order: 10 },
+      { id: "a", sort_order: 30 },
+      { id: "b", sort_order: 50 },
+    ]);
+  });
+  it("returns only what changed", () => {
+    expect(newSortOrders(cur, ["b", "a", "c"])).toEqual([
+      { id: "b", sort_order: 10 },
+      { id: "a", sort_order: 30 },
+    ]);
+    expect(newSortOrders(cur, ["a", "b", "c"])).toEqual([]);
+  });
+  it("numbers 10, 20, 30 when old numbers repeat", () => {
+    const same = cur.map((p) => ({ ...p, sort_order: 100 }));
+    expect(newSortOrders(same, ["b", "a", "c"])).toEqual([
+      { id: "b", sort_order: 10 },
+      { id: "a", sort_order: 20 },
+      { id: "c", sort_order: 30 },
+    ]);
+  });
+  it("refuses a list that does not match", () => {
+    expect(() => newSortOrders(cur, ["a", "b"])).toThrow();
+    expect(() => newSortOrders(cur, ["a", "b", "x"])).toThrow();
+    expect(() => newSortOrders(cur, ["a", "a", "b"])).toThrow();
+  });
+  it("allows reordering only inside one category without search", () => {
+    expect(canReorder({ q: "", cat: "gifts", aud: "", show: "all" })).toBe(true);
+    expect(canReorder({ q: "", cat: "", aud: "", show: "all" })).toBe(false);
+    expect(canReorder({ q: "x", cat: "gifts", aud: "", show: "all" })).toBe(false);
+    expect(canReorder({ q: "", cat: "gifts", aud: "", show: "draft" })).toBe(false);
   });
 });

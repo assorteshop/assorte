@@ -8,7 +8,7 @@ export default async function AdminProducts(props: PageProps<"/admin/products">)
   const initial = filterFromParams(await props.searchParams);
   const { data: products } = await supabase
     .from("products")
-    .select("id, name, slug, price_uah, old_price_uah, category, audience, is_published, is_featured, image_url, images, article, variant_label")
+    .select("id, name, slug, price_uah, old_price_uah, category, audience, is_published, is_featured, image_url, images, article, variant_label, sort_order")
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false });
 

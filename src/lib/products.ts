@@ -157,7 +157,8 @@ export async function getProducts(category?: CategorySlug, audience?: Audience):
     .from("products")
     .select(columns)
     .eq("is_published", true)
-    .order("sort_order", { ascending: true });
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: false });
   if (category) query = query.eq("category", category);
   if (audience) query = query.eq("audience", audience);
 
